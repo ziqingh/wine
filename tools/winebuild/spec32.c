@@ -436,7 +436,10 @@ void output_exports( DLLSPEC *spec )
             }
             else
             {
-                output( "\t%s %s\n", func_ptr, asm_name( get_link_name( odp )));
+                if (is32on64)
+                    output( "\t%s %s_%s\n", func_ptr, asm_name("wine_thunk32to64"), odp->link_name );
+                else
+                    output( "\t%s %s\n", func_ptr, asm_name( get_link_name( odp )));
             }
             break;
         case TYPE_STUB:
@@ -444,6 +447,44 @@ void output_exports( DLLSPEC *spec )
             break;
         default:
             assert(0);
+        }
+    }
+
+    if (is32on64)
+    {
+        /* output the 64-bits implements */
+
+        output( "\n.L__wine_spec_exports_impls:\n" );
+        for (i = spec->base; i <= spec->limit; i++)
+        {
+            ORDDEF *odp = spec->ordinals[i];
+            if (!odp) output( "\t%s 0\n", get_asm_ptr_keyword() );
+            else switch(odp->type)
+            {
+            case TYPE_EXTERN:
+            case TYPE_STDCALL:
+            case TYPE_VARARGS:
+            case TYPE_CDECL:
+                if (odp->flags & FLAG_FORWARD)
+                {
+                    output( "\t%s .L__wine_spec_forwards+%u\n", func_ptr, fwd_size );
+                    fwd_size += strlen(odp->link_name) + 1;
+                }
+                else if (odp->flags & FLAG_EXT_LINK)
+                {
+                    output( "\t%s %s_%s\n", func_ptr, asm_name("__wine_spec_ext_link"), odp->link_name );
+                }
+                else
+                {
+                    output( "\t%s %s\n", func_ptr, asm_name( get_link_name( odp )));
+                }
+                break;
+            case TYPE_STUB:
+                output( "\t%s %s\n", func_ptr, asm_name( get_stub_name( odp, spec )) );
+                break;
+            default:
+                assert(0);
+            }
         }
     }
 
