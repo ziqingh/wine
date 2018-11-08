@@ -1189,6 +1189,7 @@ static void output_external_link_imports( DLLSPEC *spec )
 void output_stubs( DLLSPEC *spec )
 {
     const char *name, *exp_name;
+    char *thunk32_name;
     int i;
 
     if (!has_stubs( spec )) return;
@@ -1289,6 +1290,71 @@ void output_stubs( DLLSPEC *spec )
         }
         output_cfi( ".cfi_endproc" );
         output_function_size( name );
+    }
+
+    if (is32on64)
+    {
+        output( "\n/* 32-bit thunk for stub functions */\n\n" );
+        for (i = 0; i < spec->nb_entry_points; i++)
+        {
+            ORDDEF *odp = &spec->entry_points[i];
+            if (odp->type != TYPE_STUB) continue;
+
+            name = get_stub_name( odp, spec );
+            thunk32_name = strmake( "%s_%s", name, "thunk32" );
+            exp_name = odp->name ? odp->name : odp->export_name;
+            output( "\t.align %d\n", get_alignment(4) );
+            output( "\t%s\n", func_declaration(thunk32_name) ) ;
+            output( "%s:\n", asm_name(thunk32_name) );
+            output_cfi( ".cfi_startproc" );
+            switch (target_cpu)
+            {
+            case CPU_x86_64:
+                /* flesh out the stub a bit to make safedisc happy */
+                output(" \tnop\n" );
+                output(" \tnop\n" );
+                output(" \tnop\n" );
+                output(" \tnop\n" );
+                output(" \tnop\n" );
+                output(" \tnop\n" );
+                output(" \tnop\n" );
+                output(" \tnop\n" );
+                output(" \tnop\n" );
+
+                output( "\tsubl $12,%%esp\n" );
+                output_cfi( ".cfi_adjust_cfa_offset 12" );
+                if (UsePIC)
+                {
+                    output( "\tcall %s\n", asm_name("__wine_spec_get_pc_thunk_eax") );
+                    output( "1:" );
+                    needs_get_pc_thunk = 1;
+                    if (exp_name)
+                    {
+                        output( "\tleal .L%s_string-1b(%%eax),%%ecx\n", name );
+                        output( "\tmovl %%ecx,4(%%esp)\n" );
+                    }
+                    else
+                        output( "\tmovl $%d,4(%%esp)\n", odp->ordinal );
+                    output( "\tleal .L__wine_spec_file_name-1b(%%eax),%%ecx\n" );
+                    output( "\tmovl %%ecx,(%%esp)\n" );
+                }
+                else
+                {
+                    if (exp_name)
+                        output( "\tmovl $.L%s_string,4(%%esp)\n", name );
+                    else
+                        output( "\tmovl $%d,4(%%esp)\n", odp->ordinal );
+                    output( "\tmovl $.L__wine_spec_file_name,(%%esp)\n" );
+                }
+                output( "\tcall %s_%s\n", asm_name("wine_thunk32to64"), "__wine_spec_unimplemented_stub" );
+                free( thunk32_name );
+                break;
+            default:
+                assert(0);
+            }
+            output_cfi( ".cfi_endproc" );
+            output_function_size( thunk32_name );
+        }
     }
 
     output( "\t%s\n", get_asm_string_section() );
