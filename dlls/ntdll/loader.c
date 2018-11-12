@@ -61,6 +61,8 @@ WINE_DECLARE_DEBUG_CHANNEL(imports);
 #define RT_MANIFEST                         ((ULONG_PTR)24)
 #define ISOLATIONAWARE_MANIFEST_RESOURCE_ID ((ULONG_PTR)2)
 
+#define LDR_MAGIC_WINE  0x77696e65
+
 typedef DWORD (CALLBACK *DLLENTRYPROC)(HMODULE,DWORD,LPVOID);
 typedef void  (CALLBACK *LDRENUMPROC)(LDR_MODULE *, void *, BOOLEAN *);
 
@@ -739,6 +741,8 @@ static BOOL import_dll( HMODULE module, const IMAGE_IMPORT_DESCRIPTOR *descr, LP
     PVOID protect_base;
     SIZE_T protect_size = 0;
     DWORD protect_old;
+    int imp_hybrid;
+    int mod_hybrid = get_modref(module)->ldr.Flags & LDR_WINE_HYBRID;
 
     thunk_list = get_rva( module, (DWORD)descr->FirstThunk );
     if (descr->u.OriginalFirstThunk)
@@ -782,11 +786,15 @@ static BOOL import_dll( HMODULE module, const IMAGE_IMPORT_DESCRIPTOR *descr, LP
         return FALSE;
     }
 
+    imp_hybrid = wmImp->ldr.Flags & LDR_WINE_HYBRID;
+
     /* unprotect the import address table since it can be located in
      * readonly section */
     while (import_list[protect_size].u1.Ordinal) protect_size++;
     protect_base = thunk_list;
     protect_size *= sizeof(*thunk_list);
+    if (mod_hybrid && imp_hybrid)
+        protect_size *= 2;
     NtProtectVirtualMemory( NtCurrentProcess(), &protect_base,
                             &protect_size, PAGE_READWRITE, &protect_old );
 
@@ -1167,6 +1175,8 @@ static WINE_MODREF *alloc_module( HMODULE hModule, const UNICODE_STRING *nt_name
             wm->ldr.Flags |= LDR_IMAGE_IS_DLL;
         if (nt->OptionalHeader.AddressOfEntryPoint)
             wm->ldr.EntryPoint = (char *)hModule + nt->OptionalHeader.AddressOfEntryPoint;
+        if (nt->OptionalHeader.LoaderFlags == LDR_MAGIC_WINE)
+            wm->ldr.Flags |= LDR_WINE_HYBRID;
     }
 
     InsertTailList(&NtCurrentTeb()->Peb->LdrData->InLoadOrderModuleList,
