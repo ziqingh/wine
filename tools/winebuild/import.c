@@ -701,6 +701,26 @@ static void output_import_thunk( const char *name, const char *table, int pos )
     output_function_size( name );
 }
 
+static void output_32on64_import_thunk( const char *name, const char *table, int pos, int delayed)
+{
+    if (target_cpu != CPU_x86_64) return;
+    output( "\n\t.align %d\n", get_alignment(4) );
+    output( "\t%s\n", func_declaration(name) );
+    output( "%s\n", asm_globl(name) );
+    output_cfi( ".cfi_startproc" );
+
+    if (!delayed)
+    {
+        /* TODO: delayed import thunk */
+    }
+    else
+    {
+        /* TODO: import thunk */
+    }
+    output_cfi( ".cfi_endproc" );
+    output_function_size( name );
+}
+
 /* check if we need an import directory */
 int has_imports(void)
 {
@@ -823,7 +843,7 @@ static void output_immediate_import_thunks(void)
 /* output the delayed import table of a Win32 module */
 static void output_delayed_imports( const DLLSPEC *spec )
 {
-    int j, mod;
+    int j, k, mod;
     struct import *import;
 
     if (list_empty( &dll_delayed )) return;
@@ -872,19 +892,30 @@ static void output_delayed_imports( const DLLSPEC *spec )
             output( "\t%s .L__wine_delay_imp_%s_%s\n",
                     get_asm_ptr_keyword(), import->c_name, name );
         }
+        if (is32on64)
+        {
+            /* Space for additional entries */
+            for (j = 0; j < import->nb_imports; j++)
+            {
+                output( "\t%s 0\n", get_asm_ptr_keyword() );
+            }
+        }
     }
 
     output( "\n.L__wine_delay_INT:\n" );
     LIST_FOR_EACH_ENTRY( import, &dll_delayed, struct import, entry )
     {
-        for (j = 0; j < import->nb_imports; j++)
+        for (k = 0; k < is32on64 + 1; k++)
         {
-            struct import_func *func = &import->imports[j];
-            if (!func->name)
-                output( "\t%s %d\n", get_asm_ptr_keyword(), func->ordinal );
-            else
-                output( "\t%s .L__wine_delay_data_%s_%s\n",
-                        get_asm_ptr_keyword(), import->c_name, func->name );
+            for (j = 0; j < import->nb_imports; j++)
+            {
+                struct import_func *func = &import->imports[j];
+                if (!func->name)
+                    output( "\t%s %d\n", get_asm_ptr_keyword(), func->ordinal );
+                else
+                    output( "\t%s .L__wine_delay_data_%s_%s\n",
+                            get_asm_ptr_keyword(), import->c_name, func->name );
+            }
         }
     }
 
@@ -1143,8 +1174,12 @@ static void output_delayed_import_thunks( const DLLSPEC *spec )
         for (j = 0; j < import->nb_imports; j++, pos += get_ptr_size())
         {
             struct import_func *func = &import->imports[j];
-            output_import_thunk( func->name ? func->name : func->export_name,
-                                 ".L__wine_delay_IAT", pos );
+            if (is32on64)
+                output_32on64_import_thunk(func->name ? func->name : func->export_name,
+                                           ".L__wine_delay_IAT", pos, 1 );
+            else
+                output_import_thunk( func->name ? func->name : func->export_name,
+                                     ".L__wine_delay_IAT", pos );
         }
     }
     output_function_size( delayed_import_thunks );
