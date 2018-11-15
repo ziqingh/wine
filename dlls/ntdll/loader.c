@@ -61,8 +61,6 @@ WINE_DECLARE_DEBUG_CHANNEL(imports);
 #define RT_MANIFEST                         ((ULONG_PTR)24)
 #define ISOLATIONAWARE_MANIFEST_RESOURCE_ID ((ULONG_PTR)2)
 
-#define LDR_MAGIC_WINE  0x77696e65
-
 typedef DWORD (CALLBACK *DLLENTRYPROC)(HMODULE,DWORD,LPVOID);
 typedef void  (CALLBACK *LDRENUMPROC)(LDR_MODULE *, void *, BOOLEAN *);
 
@@ -723,6 +721,9 @@ static FARPROC find_named_export( HMODULE module, const IMAGE_EXPORT_DIRECTORY *
 
 }
 
+
+#ifdef __x86_32on64__
+
 /*************************************************************************
  *		find_extra_forwarded_export
  */
@@ -734,7 +735,7 @@ static FARPROC find_extra_forwarded_export( HMODULE module, const char *forward,
     WCHAR mod_name[32];
     const char *end = strrchr(forward, '.');
     FARPROC proc = NULL;
-    int hybrid = get_modref(module)->ldr.Flags & LDR_WINE_HYBRID;
+    int import_hybrid;
 
     if (!end) return NULL;
     if ((end - forward) * sizeof(WCHAR) >= sizeof(mod_name)) return NULL;
@@ -781,33 +782,30 @@ static FARPROC find_extra_forwarded_export( HMODULE module, const char *forward,
             return NULL;
         }
     }
-    hybrid = hybrid && (wm->ldr.Flags & LDR_WINE_HYBRID);
+    import_hybrid = wm->ldr.Flags & LDR_WINE_INTERNAL;
     if ((exports = RtlImageDirectoryEntryToData( wm->ldr.BaseAddress, TRUE,
                                                  IMAGE_DIRECTORY_ENTRY_EXPORT, &exp_size )))
     {
         const char *name = end + 1;
-        if (*name == '#')  /* ordinal */
+        if (import_hybrid)
         {
-            if (hybrid)
+            if (*name == '#')  /* ordinal */
                 proc = find_extra_ordinal_export( wm->ldr.BaseAddress, exports, exp_size, atoi(name+1), load_path );
             else
-                proc = find_ordinal_export( wm->ldr.BaseAddress, exports, exp_size, atoi(name+1), load_path );
+                proc = find_extra_named_export( wm->ldr.BaseAddress, exports, exp_size, name, -1, load_path );
         }
         else
         {
-            if (hybrid)
-                proc = find_extra_named_export( wm->ldr.BaseAddress, exports, exp_size, name, -1, load_path );
-            else
-                proc = find_named_export( wm->ldr.BaseAddress, exports, exp_size, name, -1, load_path );
+            proc = NULL;
         }
     }
 
     if (!proc)
     {
-        ERR("function not found for forward '%s' used by %s."
-            " If you are using builtin %s, try using the native one instead.\n",
-            forward, debugstr_w(get_modref(module)->ldr.FullDllName.Buffer),
-            debugstr_w(get_modref(module)->ldr.BaseDllName.Buffer) );
+        TRACE(" 64-bit implement not found for forward '%s' used by %s."
+              " %s may be a 32-bit native PE DLL.\n",
+              forward, debugstr_w(get_modref(module)->ldr.FullDllName.Buffer),
+              debugstr_w(wm->ldr.BaseDllName.Buffer) );
     }
     return proc;
 }
@@ -880,8 +878,9 @@ static FARPROC find_extra_named_export( HMODULE module, const IMAGE_EXPORT_DIREC
         else min = pos + 1;
     }
     return NULL;
-
 }
+
+#endif
 
 
 /*************************************************************************
@@ -905,7 +904,10 @@ static BOOL import_dll( HMODULE module, const IMAGE_IMPORT_DESCRIPTOR *descr, LP
     PVOID protect_base;
     SIZE_T protect_size = 0;
     DWORD protect_old;
-    int hybrid = get_modref(module)->ldr.Flags & LDR_WINE_HYBRID;
+#ifdef __x86_32on64__
+    int module_hybrid = get_modref(module)->ldr.Flags & LDR_WINE_INTERNAL;
+    int import_hybrid = 0;
+#endif
 
     thunk_list = get_rva( module, (DWORD)descr->FirstThunk );
     if (descr->u.OriginalFirstThunk)
@@ -949,14 +951,14 @@ static BOOL import_dll( HMODULE module, const IMAGE_IMPORT_DESCRIPTOR *descr, LP
         return FALSE;
     }
 
-    hybrid = hybrid && (wmImp->ldr.Flags & LDR_WINE_HYBRID);
-
     /* unprotect the import address table since it can be located in
      * readonly section */
     while (import_list[protect_size].u1.Ordinal) protect_size++;
     protect_base = thunk_list;
     protect_size *= sizeof(*thunk_list);
-    if (hybrid) protect_size *= 2;
+#ifdef __x86_32on64__
+    if (module_hybrid) protect_size *= 2;
+#endif
     NtProtectVirtualMemory( NtCurrentProcess(), &protect_base,
                             &protect_size, PAGE_READWRITE, &protect_old );
 
@@ -1027,48 +1029,60 @@ static BOOL import_dll( HMODULE module, const IMAGE_IMPORT_DESCRIPTOR *descr, LP
         thunk_list++;
     }
 
-    if (hybrid)
+#ifdef __x86_32on64__
+    import_hybrid = wmImp->ldr.Flags & LDR_WINE_INTERNAL;
+    if (module_hybrid)
     {
+        /* fill the additional import table */
         extra_import_list = import_list + 1;
         extra_thunk_list = thunk_list + 1;
         while (extra_import_list)
         {
-            if (IMAGE_SNAP_BY_ORDINAL(extra_import_list->u1.Ordinal))
+            if (import_hybrid)
             {
-                int ordinal = IMAGE_ORDINAL(extra_import_list->u1.Ordinal);
 
-                extra_thunk_list->u1.Function = (ULONG_PTR)find_ordinal_export( imp_mod, exports, exp_size,
-                                                                                ordinal - exports->Base, load_path );
-                if (!extra_thunk_list->u1.Function)
+                if (IMAGE_SNAP_BY_ORDINAL(extra_import_list->u1.Ordinal))
                 {
-                    extra_thunk_list->u1.Function = allocate_stub( name, IntToPtr(ordinal) );
-                    WARN("No implementation for %s.%d imported from %s, setting to %p\n",
-                         name, ordinal, debugstr_w(current_modref->ldr.FullDllName.Buffer),
-                         (void *)extra_thunk_list->u1.Function );
+                    int ordinal = IMAGE_ORDINAL(extra_import_list->u1.Ordinal);
+
+                    extra_thunk_list->u1.Function = (ULONG_PTR)find_ordinal_export( imp_mod, exports, exp_size,
+                                                                                    ordinal - exports->Base, load_path );
+                    if (!extra_thunk_list->u1.Function)
+                    {
+                        extra_thunk_list->u1.Function = allocate_stub( name, IntToPtr(ordinal) );
+                        WARN("No implementation for %s.%d imported from %s, setting to %p\n",
+                             name, ordinal, debugstr_w(current_modref->ldr.FullDllName.Buffer),
+                             (void *)extra_thunk_list->u1.Function );
+                    }
+                    TRACE_(imports)("--- Ordinal %s.%d = %p\n", name, ordinal, (void *)extra_thunk_list->u1.Function );
                 }
-                TRACE_(imports)("--- Ordinal %s.%d = %p\n", name, ordinal, (void *)extra_thunk_list->u1.Function );
+                else  /* import by name */
+                {
+                    IMAGE_IMPORT_BY_NAME *pe_name;
+                    pe_name = get_rva( module, (DWORD)extra_import_list->u1.AddressOfData );
+                    extra_thunk_list->u1.Function = (ULONG_PTR)find_extra_named_export( imp_mod, exports, exp_size,
+                                                                                        (const char*)pe_name->Name,
+                                                                                        pe_name->Hint, load_path );
+                    if (extra_thunk_list->u1.Function)
+                    {
+                        extra_thunk_list->u1.Function = allocate_stub( name, (const char*)pe_name->Name );
+                        WARN("No implementation for %s.%s imported from %s, setting to %p\n",
+                             name, pe_name->Name, debugstr_w(current_modref->ldr.FullDllName.Buffer),
+                             (void *)extra_thunk_list->u1.Function );
+                    }
+                    TRACE_(imports)("--- %s %s.%d = %p\n",
+                                    pe_name->Name, name, pe_name->Hint, (void *)extra_thunk_list->u1.Function);
+                }
             }
-            else  /* import by name */
+            else
             {
-                IMAGE_IMPORT_BY_NAME *pe_name;
-                pe_name = get_rva( module, (DWORD)extra_import_list->u1.AddressOfData );
-                extra_thunk_list->u1.Function = (ULONG_PTR)find_extra_named_export( imp_mod, exports, exp_size,
-                                                                                    (const char*)pe_name->Name,
-                                                                                    pe_name->Hint, load_path );
-                if (extra_thunk_list->u1.Function)
-                {
-                    extra_thunk_list->u1.Function = allocate_stub( name, (const char*)pe_name->Name );
-                    WARN("No implementation for %s.%s imported from %s, setting to %p\n",
-                         name, pe_name->Name, debugstr_w(current_modref->ldr.FullDllName.Buffer),
-                         (void *)extra_thunk_list->u1.Function );
-                }
-                TRACE_(imports)("--- %s %s.%d = %p\n",
-                                pe_name->Name, name, pe_name->Hint, (void *)extra_thunk_list->u1.Function);
+                extra_thunk_list->u1.Function = 0;
             }
             extra_import_list++;
             extra_thunk_list++;
         }
     }
+#endif
 
 done:
     /* restore old protection of the import address table */
@@ -1380,8 +1394,6 @@ static WINE_MODREF *alloc_module( HMODULE hModule, const UNICODE_STRING *nt_name
             wm->ldr.Flags |= LDR_IMAGE_IS_DLL;
         if (nt->OptionalHeader.AddressOfEntryPoint)
             wm->ldr.EntryPoint = (char *)hModule + nt->OptionalHeader.AddressOfEntryPoint;
-        if (nt->OptionalHeader.LoaderFlags == LDR_MAGIC_WINE)
-            wm->ldr.Flags |= LDR_WINE_HYBRID;
     }
 
     InsertTailList(&NtCurrentTeb()->Peb->LdrData->InLoadOrderModuleList,

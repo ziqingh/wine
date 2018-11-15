@@ -2242,7 +2242,6 @@ typedef void (CALLBACK *PLDR_DLL_NOTIFICATION_FUNCTION)(ULONG, LDR_DLL_NOTIFICAT
 /* these ones is Wine specific */
 #define LDR_DONT_RESOLVE_REFS           0x40000000
 #define LDR_WINE_INTERNAL               0x80000000
-#define LDR_WINE_HYBRID                 0x10000000
 
 /* flag for LdrAddRefDll */
 #define LDR_ADDREF_DLL_PIN              0x00000001
