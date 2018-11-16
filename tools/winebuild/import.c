@@ -894,11 +894,13 @@ static void output_delayed_imports( const DLLSPEC *spec )
         }
         if (is32on64)
         {
+            output( "\t%s 0\n", get_asm_ptr_keyword() );
             /* Space for additional entries */
             for (j = 0; j < import->nb_imports; j++)
             {
-                output( "\t%s 0\n", get_asm_ptr_keyword() );
+                output( "\t%s 0x00000000deadbeef\n", get_asm_ptr_keyword() );
             }
+            output( "\t%s 0\n", get_asm_ptr_keyword() );
         }
     }
 
@@ -916,6 +918,7 @@ static void output_delayed_imports( const DLLSPEC *spec )
                     output( "\t%s .L__wine_delay_data_%s_%s\n",
                             get_asm_ptr_keyword(), import->c_name, func->name );
             }
+            if (is32on64) output( "\t%s 0\n", get_asm_ptr_keyword() );
         }
     }
 
