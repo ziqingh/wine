@@ -444,7 +444,7 @@ void output_exports( DLLSPEC *spec )
             break;
         case TYPE_STUB:
             if (is32on64)
-                output( "\t%s %s_%s\n", func_ptr, asm_name("wine_thunk32to64"), get_stub_name( odp, spec ) );
+                output( "\t%s %s_%s\n", func_ptr, asm_name( get_stub_name( odp, spec )), "thunk32" );
             else
                 output( "\t%s %s\n", func_ptr, asm_name( get_stub_name( odp, spec )) );
             break;

@@ -627,7 +627,7 @@ int is_undefined( const char *name )
 /* output the get_pc thunk if needed */
 void output_get_pc_thunk(void)
 {
-    assert( target_cpu == CPU_x86 );
+    if (!is32on64) assert( target_cpu == CPU_x86 );
     output( "\n\t.text\n" );
     output( "\t.align %d\n", get_alignment(4) );
     output( "\t%s\n", func_declaration("__wine_spec_get_pc_thunk_eax") );
@@ -1391,13 +1391,13 @@ void output_stubs( DLLSPEC *spec )
                     output( "\tmovl $.L__wine_spec_file_name,(%%esp)\n" );
                 }
                 output( "\tcall %s_%s\n", asm_name("wine_thunk32to64"), "__wine_spec_unimplemented_stub" );
-                free( thunk32_name );
                 break;
             default:
                 assert(0);
             }
             output_cfi( ".cfi_endproc" );
             output_function_size( thunk32_name );
+            free( thunk32_name );
         }
     }
 
