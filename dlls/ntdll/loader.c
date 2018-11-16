@@ -726,6 +726,8 @@ static FARPROC find_named_export( HMODULE module, const IMAGE_EXPORT_DIRECTORY *
 
 /*************************************************************************
  *		find_extra_forwarded_export
+ *
+ * The loader_section must be locked while calling this function.
  */
 static FARPROC find_extra_forwarded_export( HMODULE module, const char *forward, LPCWSTR load_path )
 {
@@ -813,6 +815,8 @@ static FARPROC find_extra_forwarded_export( HMODULE module, const char *forward,
 
 /*************************************************************************
  *		find_extra_ordinal_export
+ *
+ * The loader_section must be locked while calling this function.
  */
 static FARPROC find_extra_ordinal_export( HMODULE module, const IMAGE_EXPORT_DIRECTORY *exports,
                                           DWORD exp_size, DWORD ordinal, LPCWSTR load_path )
@@ -851,6 +855,8 @@ static FARPROC find_extra_ordinal_export( HMODULE module, const IMAGE_EXPORT_DIR
 
 /*************************************************************************
  *		find_extra_named_export
+ *
+ * The loader_section must be locked while calling this function.
  */
 static FARPROC find_extra_named_export( HMODULE module, const IMAGE_EXPORT_DIRECTORY *exports,
                                         DWORD exp_size, const char *name, int hint, LPCWSTR load_path )
@@ -878,6 +884,47 @@ static FARPROC find_extra_named_export( HMODULE module, const IMAGE_EXPORT_DIREC
         else min = pos + 1;
     }
     return NULL;
+}
+
+
+FARPROC CDECL __wine_get_extra_proc(HMODULE module, LPCSTR name, ULONG ord)
+{
+    IMAGE_EXPORT_DIRECTORY *exports;
+    DWORD exp_size;
+    FARPROC proc = NULL;
+
+    RtlEnterCriticalSection( &loader_section );
+
+    /* check if the module itself is invalid to return the proper error */
+    if (!get_modref( module )) proc = NULL;
+    else if ((exports = RtlImageDirectoryEntryToData( module, TRUE,
+                                                      IMAGE_DIRECTORY_ENTRY_EXPORT, &exp_size )))
+    {
+        LPCWSTR load_path = NtCurrentTeb()->Peb->ProcessParameters->DllPath.Buffer;
+        proc = name ? find_extra_named_export( module, exports, exp_size, name, -1, load_path )
+                    : find_extra_ordinal_export( module, exports, exp_size, ord - exports->Base, load_path );
+    }
+
+    RtlLeaveCriticalSection( &loader_section );
+    return proc;
+}
+
+
+int CDECL __wine_is_module_hybrid(HMODULE module)
+{
+    WINE_MODREF *wm;
+    int ret = 0;
+
+    RtlEnterCriticalSection( &loader_section );
+
+    if (!(wm = get_modref(module)))
+        ret = 0;
+    else
+        ret = wm->ldr.Flags & LDR_WINE_INTERNAL;
+
+    RtlLeaveCriticalSection( &loader_section );
+
+    return ret;
 }
 
 #endif
@@ -957,6 +1004,7 @@ static BOOL import_dll( HMODULE module, const IMAGE_IMPORT_DESCRIPTOR *descr, LP
     protect_base = thunk_list;
     protect_size *= sizeof(*thunk_list);
 #ifdef __x86_32on64__
+    import_hybrid = wmImp->ldr.Flags & LDR_WINE_INTERNAL;
     if (module_hybrid) protect_size *= 2;
 #endif
     NtProtectVirtualMemory( NtCurrentProcess(), &protect_base,
@@ -1030,7 +1078,6 @@ static BOOL import_dll( HMODULE module, const IMAGE_IMPORT_DESCRIPTOR *descr, LP
     }
 
 #ifdef __x86_32on64__
-    import_hybrid = wmImp->ldr.Flags & LDR_WINE_INTERNAL;
     if (module_hybrid)
     {
         /* fill the additional import table */
@@ -1045,8 +1092,8 @@ static BOOL import_dll( HMODULE module, const IMAGE_IMPORT_DESCRIPTOR *descr, LP
                 {
                     int ordinal = IMAGE_ORDINAL(extra_import_list->u1.Ordinal);
 
-                    extra_thunk_list->u1.Function = (ULONG_PTR)find_ordinal_export( imp_mod, exports, exp_size,
-                                                                                    ordinal - exports->Base, load_path );
+                    extra_thunk_list->u1.Function = (ULONG_PTR)find_extra_ordinal_export( imp_mod, exports, exp_size,
+                                                                                          ordinal - exports->Base, load_path );
                     if (!extra_thunk_list->u1.Function)
                     {
                         extra_thunk_list->u1.Function = allocate_stub( name, IntToPtr(ordinal) );
