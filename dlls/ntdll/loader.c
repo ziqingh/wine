@@ -3529,6 +3529,20 @@ void* WINAPI LdrResolveDelayLoadedAPI( void* base, const IMAGE_DELAYLOAD_DESCRIP
         RtlInitAnsiString(&fnc, (char*)iibn->Name);
         nts = LdrGetProcedureAddress(*phmod, &fnc, 0, (void**)&fp);
     }
+
+#ifdef __x86_32on64__
+    while (pIAT[id].u1.Function != 0) id++;
+    id += addr - pIAT;
+    if (__wine_is_module_hybrid(*phmod))
+    {
+        pIAT[id].u1.Function = (ULONG_PTR)__wine_get_extra_proc( *phmod, (LPCSTR)pINT[id].u1.Function );
+    }
+    else
+    {
+        pIAT[id].u1.Function = 0;
+    }
+#endif
+
     if (!nts)
     {
         pIAT[id].u1.Function = (ULONG_PTR)fp;
