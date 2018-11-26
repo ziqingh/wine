@@ -1531,5 +1531,5 @@
 @ cdecl wine_unix_to_nt_file_name(ptr ptr)
 
 # Loader
-@ cdecl -arch=x86_32on64 __wine_get_extra_proc(ptr ptr long)
+@ cdecl -arch=x86_32on64 __wine_get_extra_proc(ptr ptr)
 @ cdecl -arch=x86_32on64 __wine_is_module_hybrid(ptr)

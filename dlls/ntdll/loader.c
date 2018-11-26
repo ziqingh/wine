@@ -887,12 +887,13 @@ static FARPROC find_extra_named_export( HMODULE module, const IMAGE_EXPORT_DIREC
 }
 
 
-FARPROC CDECL __wine_get_extra_proc(HMODULE module, LPCSTR name, ULONG ord)
+FARPROC CDECL __wine_get_extra_proc( HMODULE module, LPCSTR function )
 {
     IMAGE_EXPORT_DIRECTORY *exports;
     DWORD exp_size;
     FARPROC proc = NULL;
 
+    if (!module) module = NtCurrentTeb()->Peb->ImageBaseAddress;
     RtlEnterCriticalSection( &loader_section );
 
     /* check if the module itself is invalid to return the proper error */
@@ -901,8 +902,16 @@ FARPROC CDECL __wine_get_extra_proc(HMODULE module, LPCSTR name, ULONG ord)
                                                       IMAGE_DIRECTORY_ENTRY_EXPORT, &exp_size )))
     {
         LPCWSTR load_path = NtCurrentTeb()->Peb->ProcessParameters->DllPath.Buffer;
-        proc = name ? find_extra_named_export( module, exports, exp_size, name, -1, load_path )
-                    : find_extra_ordinal_export( module, exports, exp_size, ord - exports->Base, load_path );
+        if ((ULONG_PTR)function >> 16)
+        {
+            ANSI_STRING name;
+            RtlInitAnsiString( &name, function );
+            proc = find_extra_named_export( module, exports, exp_size, name.Buffer, -1, load_path );
+        }
+        else
+        {
+            proc = find_extra_ordinal_export( module, exports, exp_size, LOWORD(function) - exports->Base, load_path );
+        }
     }
 
     RtlLeaveCriticalSection( &loader_section );
@@ -910,14 +919,14 @@ FARPROC CDECL __wine_get_extra_proc(HMODULE module, LPCSTR name, ULONG ord)
 }
 
 
-int CDECL __wine_is_module_hybrid(HMODULE module)
+int CDECL __wine_is_module_hybrid( HMODULE module )
 {
     WINE_MODREF *wm;
     int ret = 0;
 
     RtlEnterCriticalSection( &loader_section );
 
-    if (!(wm = get_modref(module)))
+    if (!(wm = get_modref( module )))
         ret = 0;
     else
         ret = wm->ldr.Flags & LDR_WINE_INTERNAL;
