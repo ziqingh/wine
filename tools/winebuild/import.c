@@ -701,7 +701,7 @@ static void output_import_thunk( const char *name, const char *table, int pos )
     output_function_size( name );
 }
 
-static void output_32on64_import_thunk( const char *name, const char *table, int pos, int delayed)
+static void output_32on64_import_thunk( const char *name, const char *table, int pos, int nb_imports, int delayed)
 {
     if (target_cpu != CPU_x86_64) return;
     output( "\n\t.align %d\n", get_alignment(4) );
@@ -711,11 +711,17 @@ static void output_32on64_import_thunk( const char *name, const char *table, int
 
     if (!delayed)
     {
-        /* TODO: delayed import thunk */
+        output( "\tcmpq $0, %s+%d(%%rip)\n", table, nb_imports + pos + 1 );
+        output( "\tjne 1f\n" );
+        output( "\tmovq %s+%d(%%rip), %%rbx\n" , table, pos );
+        output( "\tmovq %%rbx, 8(%%rax)\n");
+        output( "\tjmpq *(%%rax)\n" );
+        output( "\t1:\n" );
+        output( "\tjmpq *%s+%d(%%rip)\n", table, nb_imports + pos + 1 );
     }
     else
     {
-        /* TODO: import thunk */
+        /* TODO: delayed import thunk */
     }
     output_cfi( ".cfi_endproc" );
     output_function_size( name );
@@ -832,8 +838,12 @@ static void output_immediate_import_thunks(void)
         for (j = 0; j < import->nb_imports; j++, pos += get_ptr_size())
         {
             struct import_func *func = &import->imports[j];
-            output_import_thunk( func->name ? func->name : func->export_name,
-                                 ".L__wine_spec_import_data_ptrs", pos );
+            if (is32on64)
+                output_32on64_import_thunk( func->name ? func->name : func->export_name,
+                                            ".L__wine_spec_import_data_ptrs", pos, import->nb_exports, 0 );
+            else
+                output_import_thunk( func->name ? func->name : func->export_name,
+                                     ".L__wine_spec_import_data_ptrs", pos );
         }
         pos += get_ptr_size();
     }
@@ -1178,8 +1188,8 @@ static void output_delayed_import_thunks( const DLLSPEC *spec )
         {
             struct import_func *func = &import->imports[j];
             if (is32on64)
-                output_32on64_import_thunk(func->name ? func->name : func->export_name,
-                                           ".L__wine_delay_IAT", pos, 1 );
+                output_32on64_import_thunk( func->name ? func->name : func->export_name,
+                                            ".L__wine_delay_IAT", pos, import->nb_exports, 1 );
             else
                 output_import_thunk( func->name ? func->name : func->export_name,
                                      ".L__wine_delay_IAT", pos );
