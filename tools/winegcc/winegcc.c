@@ -209,6 +209,7 @@ struct options
     int unwind_tables;
     int strip;
     int pic;
+    int is32on64;
     const char* wine_objdir;
     const char* output_name;
     const char* image_base;
@@ -341,7 +342,9 @@ static const strarray* get_translator(struct options *opts)
     }
     ret = strarray_fromstring( str, " " );
     free(str);
-    if (opts->force_pointer_size)
+    if (opts->is32on64)
+        strarray_add( ret, strmake("-m32on64"));
+    else if (opts->force_pointer_size)
         strarray_add( ret, strmake("-m%u", 8 * opts->force_pointer_size ));
     return ret;
 }
@@ -1029,7 +1032,9 @@ static void build(struct options* opts)
     strarray_add( spec_args, strmake( "--ld-cmd=%s", build_tool_name( opts, "ld", LD )));
 
     spec_o_name = get_temp_file(output_name, ".spec.o");
-    if (opts->force_pointer_size)
+    if (opts->is32on64)
+        strarray_add(spec_args, strmake("-m32on64"));
+    else if (opts->force_pointer_size)
         strarray_add(spec_args, strmake("-m%u", 8 * opts->force_pointer_size ));
     strarray_add(spec_args, "-D_REENTRANT");
     if (opts->pic && !is_pe) strarray_add(spec_args, "-fPIC");
@@ -1515,6 +1520,12 @@ int main(int argc, char **argv)
                             opts.target_cpu = CPU_ARM64;
                         opts.force_pointer_size = 8;
 			raw_linker_arg = 1;
+                    }
+            else if (strcmp("-m32on64", argv[i]) == 0)
+                    {
+                        opts.is32on64 = 1;
+                        opts.force_pointer_size = 8;
+            raw_linker_arg = 1;
                     }
                     else if (!strcmp("-marm", argv[i] ) || !strcmp("-mthumb", argv[i] ))
                     {
