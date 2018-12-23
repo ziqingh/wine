@@ -457,6 +457,7 @@ void output_exports( DLLSPEC *spec )
     {
         /* output the 64-bits implements */
 
+        fwd_size = 0;
         output( "\n.L__wine_spec_exports_impls:\n" );
         for (i = spec->base; i <= spec->limit; i++)
         {
