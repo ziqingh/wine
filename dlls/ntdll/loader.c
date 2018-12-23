@@ -1110,7 +1110,7 @@ static BOOL import_dll( HMODULE module, const IMAGE_IMPORT_DESCRIPTOR *descr, LP
                              name, ordinal, debugstr_w(current_modref->ldr.FullDllName.Buffer),
                              (void *)extra_thunk_list->u1.Function );
                     }
-                    TRACE_(imports)("--- Ordinal %s.%d = %p\n", name, ordinal, (void *)extra_thunk_list->u1.Function );
+                    TRACE_(imports)("extra imports --- Ordinal %s.%d = %p\n", name, ordinal, (void *)extra_thunk_list->u1.Function );
                 }
                 else  /* import by name */
                 {
@@ -1126,7 +1126,7 @@ static BOOL import_dll( HMODULE module, const IMAGE_IMPORT_DESCRIPTOR *descr, LP
                              name, pe_name->Name, debugstr_w(current_modref->ldr.FullDllName.Buffer),
                              (void *)extra_thunk_list->u1.Function );
                     }
-                    TRACE_(imports)("--- %s %s.%d = %p\n",
+                    TRACE_(imports)("extra imports --- %s %s.%d = %p\n",
                                     pe_name->Name, name, pe_name->Hint, (void *)extra_thunk_list->u1.Function);
                 }
             }
