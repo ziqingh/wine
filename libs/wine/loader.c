@@ -329,6 +329,14 @@ static inline void fixup_rva_names( UINT_PTR *ptr, int delta )
         if (!(*ptr & IMAGE_ORDINAL_FLAG)) *ptr += delta;
         ptr++;
     }
+#ifdef __x86_32on64__
+    ptr++;
+    while (*ptr)
+    {
+        if (!(*ptr & IMAGE_ORDINAL_FLAG)) *ptr += delta;
+        ptr++;
+    }
+#endif
 }
 
 
@@ -355,7 +363,11 @@ static void fixup_exports( IMAGE_EXPORT_DIRECTORY *dir, BYTE *base, int delta )
     fixup_rva_dwords( &dir->AddressOfNames, delta, 1 );
     fixup_rva_dwords( &dir->AddressOfNameOrdinals, delta, 1 );
     fixup_rva_dwords( (DWORD *)(base + dir->AddressOfNames), delta, dir->NumberOfNames );
+#ifdef __x86_32on64__
+    fixup_rva_ptrs( (base + dir->AddressOfFunctions), base, dir->NumberOfFunctions * 2 );
+#else
     fixup_rva_ptrs( (base + dir->AddressOfFunctions), base, dir->NumberOfFunctions );
+#endif
 }
 
 
