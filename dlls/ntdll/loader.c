@@ -1092,7 +1092,7 @@ static BOOL import_dll( HMODULE module, const IMAGE_IMPORT_DESCRIPTOR *descr, LP
         /* fill the additional import table */
         extra_import_list = import_list + 1;
         extra_thunk_list = thunk_list + 1;
-        while (extra_import_list)
+        while (extra_import_list->u1.Ordinal)
         {
             if (import_hybrid)
             {
@@ -1119,7 +1119,7 @@ static BOOL import_dll( HMODULE module, const IMAGE_IMPORT_DESCRIPTOR *descr, LP
                     extra_thunk_list->u1.Function = (ULONG_PTR)find_extra_named_export( imp_mod, exports, exp_size,
                                                                                         (const char*)pe_name->Name,
                                                                                         pe_name->Hint, load_path );
-                    if (extra_thunk_list->u1.Function)
+                    if (!extra_thunk_list->u1.Function)
                     {
                         extra_thunk_list->u1.Function = allocate_stub( name, (const char*)pe_name->Name );
                         WARN("No implementation for %s.%s imported from %s, setting to %p\n",
