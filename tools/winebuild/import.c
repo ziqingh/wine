@@ -708,13 +708,13 @@ static void output_32on64_import_thunk( const char *name, const char *table, int
     output( "\t%s\n", func_declaration(name) );
     output( "%s\n", asm_globl(name) );
     output_cfi( ".cfi_startproc" );
-    output( "\tcmpq $0, %s+%d(%%rip)\n", table, nb_imports + pos + 1 );
+    output( "\tcmpq $0, %s+%d(%%rip)\n", table, pos + (nb_imports + 1) * get_ptr_size() );
     output( "\tjne 1f\n" );
     output( "\tmovq %s+%d(%%rip), %%rbx\n" , table, pos );
     output( "\tmovq %%rbx, 8(%%rax)\n");
     output( "\tjmpq *(%%rax)\n" );
     output( "\t1:\n" );
-    output( "\tjmpq *%s+%d(%%rip)\n", table, nb_imports + pos + 1 );
+    output( "\tjmpq *%s+%d(%%rip)\n", table, pos + (nb_imports + 1) * get_ptr_size() );
     output_cfi( ".cfi_endproc" );
     output_function_size( name );
 }
@@ -752,7 +752,7 @@ static void output_immediate_imports(void)
         output_rva( ".L__wine_spec_import_name_%s", import->c_name ); /* Name */
         output_rva( ".L__wine_spec_import_data_ptrs + %d", j * get_ptr_size() );  /* FirstThunk */
         j += import->nb_imports + 1;
-        if (is32on64) j += import->nb_exports + 1;
+        if (is32on64) j += import->nb_imports + 1;
     }
     output( "\t.long 0\n" );     /* OriginalFirstThunk */
     output( "\t.long 0\n" );     /* TimeDateStamp */
@@ -832,7 +832,7 @@ static void output_immediate_import_thunks(void)
             struct import_func *func = &import->imports[j];
             if (is32on64)
                 output_32on64_import_thunk( func->name ? func->name : func->export_name,
-                                            ".L__wine_spec_import_data_ptrs", pos, import->nb_exports );
+                                            ".L__wine_spec_import_data_ptrs", pos, import->nb_imports );
             else
                 output_import_thunk( func->name ? func->name : func->export_name,
                                      ".L__wine_spec_import_data_ptrs", pos );
@@ -1142,13 +1142,13 @@ static void output_delayed_import_thunks( const DLLSPEC *spec )
                 {
                     output( "\tmovq $%d,%%rbx\n", (idx << 16) | j );
                     output( "\tcall %s\n", asm_name("__wine_delay_load_asm") );
-                    output( "\tcmpq $0, .L__wine_delay_IAT+%d(%%rip)\n", import->nb_exports + j + 1 );
+                    output( "\tcmpq $0, .L__wine_delay_IAT+%d(%%rip)\n", (import->nb_imports + j + 1) * get_ptr_size() );
                     output( "\tjne 1f\n" );
-                    output( "\tmovq .L__wine_delay_IAT+%d(%%rip), %%rbx\n", j );
+                    output( "\tmovq .L__wine_delay_IAT+%d(%%rip), %%rbx\n", j * get_ptr_size() );
                     output( "\tmovq %%rbx, 8(%%rax)\n");
                     output( "\tjmpq *(%%rax)\n" );
                     output( "\t1:\n" );
-                    output( "\tjmpq *.L__wine_delay_IAT+%d(%%rip)\n", import->nb_exports + j + 1 );
+                    output( "\tjmpq *.L__wine_delay_IAT+%d(%%rip)\n", (import->nb_imports + j + 1) * get_ptr_size() );
                 }
                 else
                 {
@@ -1226,7 +1226,7 @@ static void output_delayed_import_thunks( const DLLSPEC *spec )
             struct import_func *func = &import->imports[j];
             if (is32on64)
                 output_32on64_import_thunk( func->name ? func->name : func->export_name,
-                                            ".L__wine_delay_IAT", pos, import->nb_exports );
+                                            ".L__wine_delay_IAT", pos, import->nb_imports );
             else
                 output_import_thunk( func->name ? func->name : func->export_name,
                                      ".L__wine_delay_IAT", pos );
