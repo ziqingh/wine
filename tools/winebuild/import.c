@@ -640,7 +640,7 @@ void output_get_pc_thunk(void)
 }
 
 /* output a single import thunk */
-static void output_import_thunk( const char *name, const char *table, int pos )
+static void output_import_thunk( const char *name, const char *table, int pos, int nb_imports )
 {
     output( "\n\t.align %d\n", get_alignment(4) );
     output( "\t%s\n", func_declaration(name) );
@@ -662,7 +662,18 @@ static void output_import_thunk( const char *name, const char *table, int pos )
         }
         break;
     case CPU_x86_64:
-        output( "\tjmpq *%s+%d(%%rip)\n", table, pos );
+        if (is32on64)
+        {
+            output( "\tcmpq $0, %s+%d(%%rip)\n", table, pos + (nb_imports + 1) * get_ptr_size() );
+            output( "\tjne 1f\n" );
+            output( "\tmovq %s+%d(%%rip), %%rbx\n" , table, pos );
+            output( "\tmovq %%rbx, 8(%%rax)\n");
+            output( "\tjmpq *(%%rax)\n" );
+            output( "\t1:\n" );
+            output( "\tjmpq *%s+%d(%%rip)\n", table, pos + (nb_imports + 1) * get_ptr_size() );
+        }
+        else
+            output( "\tjmpq *%s+%d(%%rip)\n", table, pos );
         break;
     case CPU_ARM:
         output( "\tldr IP,1f\n");
@@ -697,24 +708,6 @@ static void output_import_thunk( const char *name, const char *table, int pos )
         output( "\tbctr\n" );
         break;
     }
-    output_cfi( ".cfi_endproc" );
-    output_function_size( name );
-}
-
-static void output_32on64_import_thunk( const char *name, const char *table, int pos, int nb_imports )
-{
-    if (target_cpu != CPU_x86_64) return;
-    output( "\n\t.align %d\n", get_alignment(4) );
-    output( "\t%s\n", func_declaration(name) );
-    output( "%s\n", asm_globl(name) );
-    output_cfi( ".cfi_startproc" );
-    output( "\tcmpq $0, %s+%d(%%rip)\n", table, pos + (nb_imports + 1) * get_ptr_size() );
-    output( "\tjne 1f\n" );
-    output( "\tmovq %s+%d(%%rip), %%rbx\n" , table, pos );
-    output( "\tmovq %%rbx, 8(%%rax)\n");
-    output( "\tjmpq *(%%rax)\n" );
-    output( "\t1:\n" );
-    output( "\tjmpq *%s+%d(%%rip)\n", table, pos + (nb_imports + 1) * get_ptr_size() );
     output_cfi( ".cfi_endproc" );
     output_function_size( name );
 }
@@ -830,12 +823,8 @@ static void output_immediate_import_thunks(void)
         for (j = 0; j < import->nb_imports; j++, pos += get_ptr_size())
         {
             struct import_func *func = &import->imports[j];
-            if (is32on64)
-                output_32on64_import_thunk( func->name ? func->name : func->export_name,
-                                            ".L__wine_spec_import_data_ptrs", pos, import->nb_imports );
-            else
-                output_import_thunk( func->name ? func->name : func->export_name,
-                                     ".L__wine_spec_import_data_ptrs", pos );
+            output_import_thunk( func->name ? func->name : func->export_name,
+                                 ".L__wine_spec_import_data_ptrs", pos, import->nb_imports );
         }
         pos += get_ptr_size();
     }
@@ -1224,12 +1213,8 @@ static void output_delayed_import_thunks( const DLLSPEC *spec )
         for (j = 0; j < import->nb_imports; j++, pos += get_ptr_size())
         {
             struct import_func *func = &import->imports[j];
-            if (is32on64)
-                output_32on64_import_thunk( func->name ? func->name : func->export_name,
-                                            ".L__wine_delay_IAT", pos, import->nb_imports );
-            else
-                output_import_thunk( func->name ? func->name : func->export_name,
-                                     ".L__wine_delay_IAT", pos );
+            output_import_thunk( func->name ? func->name : func->export_name,
+                                 ".L__wine_delay_IAT", pos, import->nb_imports );
         }
     }
     output_function_size( delayed_import_thunks );
@@ -1265,7 +1250,7 @@ static void output_external_link_imports( DLLSPEC *spec )
     for (i = pos = 0; i < ext_link_imports.count; i++)
     {
         char *buffer = strmake( "__wine_spec_ext_link_%s", ext_link_imports.str[i] );
-        output_import_thunk( buffer, ".L__wine_spec_external_links", pos );
+        output_import_thunk( buffer, ".L__wine_spec_external_links", pos, ext_link_imports.count );
         free( buffer );
         pos += get_ptr_size();
     }
