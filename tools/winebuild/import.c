@@ -884,7 +884,6 @@ static void output_delayed_imports( const DLLSPEC *spec )
                 const char *name = func->name ? func->name : func->export_name;
                 output( "\t%s .L__wine_delay_imp_%s_%s\n",
                         get_asm_ptr_keyword(), import->c_name, name );
-                output( "\t%s 0\n", get_asm_ptr_keyword() );
             }
             if (is32on64) output( "\t%s 0\n", get_asm_ptr_keyword() );
         }
