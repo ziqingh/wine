@@ -1386,6 +1386,7 @@ void output_stubs( DLLSPEC *spec )
             {
             case CPU_x86_64:
                 /* flesh out the stub a bit to make safedisc happy */
+                output("\t.code32\n");
                 output(" \tnop\n" );
                 output(" \tnop\n" );
                 output(" \tnop\n" );
@@ -1422,6 +1423,7 @@ void output_stubs( DLLSPEC *spec )
                     output( "\tmovl $.L__wine_spec_file_name,(%%esp)\n" );
                 }
                 output( "\tcall %s_%s\n", asm_name("wine_thunk32to64"), "__wine_spec_unimplemented_stub" );
+                output("\t.code64\n");
                 break;
             default:
                 assert(0);
