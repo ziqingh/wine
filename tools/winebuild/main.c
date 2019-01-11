@@ -46,7 +46,6 @@ int verbose = 0;
 int link_ext_symbols = 0;
 int force_pointer_size = 0;
 int unwind_tables = 0;
-int is32on64 = 0;
 
 #ifdef __i386__
 enum target_cpu target_cpu = CPU_x86;

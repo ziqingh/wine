@@ -436,14 +436,14 @@ void output_exports( DLLSPEC *spec )
             }
             else
             {
-                if (is32on64)
+                if (target_cpu == CPU_x86_32on64)
                     output( "\t%s %s_%s\n", func_ptr, asm_name("wine_thunk32to64"), odp->link_name );
                 else
                     output( "\t%s %s\n", func_ptr, asm_name( get_link_name( odp )));
             }
             break;
         case TYPE_STUB:
-            if (is32on64)
+            if (target_cpu == CPU_x86_32on64)
                 output( "\t%s %s_%s\n", func_ptr, asm_name( get_stub_name( odp, spec )), "thunk32" );
             else
                 output( "\t%s %s\n", func_ptr, asm_name( get_stub_name( odp, spec )) );
@@ -453,7 +453,7 @@ void output_exports( DLLSPEC *spec )
         }
     }
 
-    if (is32on64)
+    if (target_cpu == CPU_x86_32on64)
     {
         /* output the 64-bits implements */
 
