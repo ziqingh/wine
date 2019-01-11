@@ -411,7 +411,7 @@ static char **parse_options( int argc, char **argv, DLLSPEC *spec )
             if (!strcmp( optarg, "16" )) spec->type = SPEC_WIN16;
             else if (!strcmp( optarg, "32" )) force_pointer_size = 4;
             else if (!strcmp( optarg, "64" )) force_pointer_size = 8;
-            else if (!strcmp( optarg, "32on64" )) { force_pointer_size = 8; is32on64 = 1; }
+            else if (!strcmp( optarg, "32on64" )) { force_pointer_size = 8; target_cpu = CPU_x86_32on64; }
             else if (!strcmp( optarg, "arm" )) thumb_mode = 0;
             else if (!strcmp( optarg, "thumb" )) thumb_mode = 1;
             else if (!strncmp( optarg, "cpu=", 4 )) cpu_option = xstrdup( optarg + 4 );

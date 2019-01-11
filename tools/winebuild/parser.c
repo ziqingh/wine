@@ -490,8 +490,6 @@ static const char *parse_spec_flags( DLLSPEC *spec, ORDDEF *odp )
                 }
                 else if (!strcmp( cpu_name, "win64" ))
                     odp->flags |= FLAG_CPU_WIN64;
-                else if (!strcmp( cpu_name, "x86_32on64" ))
-                    odp->flags |= FLAG_32ON64;
                 else
                 {
                     int cpu = get_cpu_from_name( cpu_name );
@@ -617,8 +615,7 @@ static int parse_spec_ordinal( int ordinal, DLLSPEC *spec )
         assert( 0 );
     }
 
-    if (((odp->flags & FLAG_CPU_MASK) && !(odp->flags & FLAG_CPU(target_cpu)))
-        || ((odp->flags & FLAG_32ON64) && !is32on64))
+    if (((odp->flags & FLAG_CPU_MASK) && !(odp->flags & FLAG_CPU(target_cpu))))
     {
         /* ignore this entry point */
         spec->nb_entry_points--;

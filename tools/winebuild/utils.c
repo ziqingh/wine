@@ -59,6 +59,7 @@ static const struct
     { "i786",    CPU_x86 },
     { "amd64",   CPU_x86_64 },
     { "x86_64",  CPU_x86_64 },
+    { "x86_32on64",  CPU_x86_32on64 },
     { "powerpc", CPU_POWERPC },
     { "arm",     CPU_ARM },
     { "armv5",   CPU_ARM },
