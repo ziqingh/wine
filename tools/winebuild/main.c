@@ -49,8 +49,10 @@ int unwind_tables = 0;
 
 #ifdef __i386__
 enum target_cpu target_cpu = CPU_x86;
-#elif defined(__x86_64__) || defined (__x86_32on64__)
+#elif defined(__x86_64__)
 enum target_cpu target_cpu = CPU_x86_64;
+#elif defined (__x86_32on64__)
+enum target_cpu target_cpu = CPU_x86_32on64;
 #elif defined(__powerpc__)
 enum target_cpu target_cpu = CPU_POWERPC;
 #elif defined(__arm__)
@@ -536,6 +538,8 @@ static char **parse_options( int argc, char **argv, DLLSPEC *spec )
         break;
     case CPU_x86_64:
         if (force_pointer_size == 4) target_cpu = CPU_x86;
+        break;
+    case CPU_x86_32on64:
         break;
     default:
         if (force_pointer_size == 8)

@@ -777,7 +777,7 @@ int remove_stdcall_decoration( char *name )
 {
     char *p, *end = strrchr( name, '@' );
     if (!end || !end[1] || end == name) return -1;
-    if (target_cpu != CPU_x86) return -1;
+    if (target_cpu != CPU_x86 && target_cpu != CPU_x86_32on64) return -1;
     /* make sure all the rest is digits */
     for (p = end + 1; *p; p++) if (!isdigit(*p)) return -1;
     *end = 0;
@@ -983,6 +983,7 @@ unsigned int get_alignment(unsigned int align)
     {
     case CPU_x86:
     case CPU_x86_64:
+    case CPU_x86_32on64:
         if (target_platform != PLATFORM_APPLE) return align;
         /* fall through */
     case CPU_POWERPC:
@@ -1004,6 +1005,7 @@ unsigned int get_page_size(void)
     {
     case CPU_x86:
     case CPU_x86_64:
+    case CPU_x86_32on64:
     case CPU_POWERPC:
     case CPU_ARM:
         return 0x1000;
@@ -1021,6 +1023,7 @@ unsigned int get_ptr_size(void)
     switch(target_cpu)
     {
     case CPU_x86:
+    case CPU_x86_32on64:
     case CPU_POWERPC:
     case CPU_ARM:
         return 4;

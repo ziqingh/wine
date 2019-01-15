@@ -81,7 +81,7 @@ static int has_relays( DLLSPEC *spec )
 {
     int i;
 
-    if (target_cpu != CPU_x86 && target_cpu != CPU_x86_64 &&
+    if (target_cpu != CPU_x86 && target_cpu != CPU_x86_64 && target_cpu != CPU_x86_32on64 &&
         target_cpu != CPU_ARM && target_cpu != CPU_ARM64)
         return 0;
 
@@ -342,6 +342,7 @@ static void output_relay_debug( DLLSPEC *spec )
             break;
 
         case CPU_x86_64:
+        case CPU_x86_32on64:
             output( "\t.align %d\n", get_alignment(4) );
             output( "\t.long 0x90909090,0x90909090\n" );
             output( ".L__wine_spec_relay_entry_point_%d:\n", i );
@@ -597,6 +598,7 @@ static void output_asm_constructor( const char *constructor )
         {
         case CPU_x86:
         case CPU_x86_64:
+        case CPU_x86_32on64:
             output( "\n\t.section \".init\",\"ax\"\n" );
             output( "\tcall %s\n", asm_name(constructor) );
             break;
@@ -647,6 +649,7 @@ void output_module( DLLSPEC *spec )
         {
         case CPU_x86:
         case CPU_x86_64:
+        case CPU_x86_32on64:
             output( "\n\t.section \".init\",\"ax\"\n" );
             output( "\tjmp 1f\n" );
             break;
@@ -676,6 +679,7 @@ void output_module( DLLSPEC *spec )
     output( "\t.long 0x4550\n" );         /* Signature */
     switch(target_cpu)
     {
+    case CPU_x86_32on64:
     case CPU_x86:     machine = IMAGE_FILE_MACHINE_I386; break;
     case CPU_x86_64:  machine = IMAGE_FILE_MACHINE_AMD64; break;
     case CPU_POWERPC: machine = IMAGE_FILE_MACHINE_POWERPC; break;
@@ -835,6 +839,7 @@ void output_fake_module( DLLSPEC *spec )
     put_dword( 0x4550 );                             /* Signature */
     switch(target_cpu)
     {
+    case CPU_x86_32on64:
     case CPU_x86:     put_word( IMAGE_FILE_MACHINE_I386 ); break;
     case CPU_x86_64:  put_word( IMAGE_FILE_MACHINE_AMD64 ); break;
     case CPU_POWERPC: put_word( IMAGE_FILE_MACHINE_POWERPC ); break;
@@ -1031,7 +1036,7 @@ void output_def_file( DLLSPEC *spec, int include_stubs )
         case TYPE_STDCALL:
         {
             int at_param = get_args_size( odp );
-            if (!kill_at && target_cpu == CPU_x86) output( "@%d", at_param );
+            if (!kill_at && (target_cpu == CPU_x86 || target_cpu == CPU_x86_32on64)) output( "@%d", at_param );
             if  (odp->flags & FLAG_FORWARD)
                 output( "=%s", odp->link_name );
             else if (strcmp(name, odp->link_name)) /* try to reduce output */
