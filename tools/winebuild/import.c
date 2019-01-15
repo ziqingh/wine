@@ -826,6 +826,7 @@ static void output_immediate_import_thunks(void)
                                  ".L__wine_spec_import_data_ptrs", pos, import->nb_imports );
         }
         pos += get_ptr_size();
+        if (target_cpu == CPU_x86_32on64) pos += (import->nb_imports + 1) * get_ptr_size();
     }
     output_function_size( import_thunks );
 }
@@ -935,7 +936,7 @@ static void output_delayed_imports( const DLLSPEC *spec )
 /* output the delayed import thunks of a Win32 module */
 static void output_delayed_import_thunks( const DLLSPEC *spec )
 {
-    int idx, j, pos, extra_stack_storage = 0;
+    int idx, j, pos, table_begin, extra_stack_storage = 0;
     struct import *import;
     static const char delayed_import_loaders[] = "__wine_spec_delayed_import_loaders";
     static const char delayed_import_thunks[] = "__wine_spec_delayed_import_thunks";
@@ -1106,6 +1107,7 @@ static void output_delayed_import_thunks( const DLLSPEC *spec )
     output( "\n" );
 
     idx = 0;
+    table_begin = 0;
     LIST_FOR_EACH_ENTRY( import, &dll_delayed, struct import, entry )
     {
         for (j = 0; j < import->nb_imports; j++)
@@ -1128,13 +1130,13 @@ static void output_delayed_import_thunks( const DLLSPEC *spec )
             case CPU_x86_32on64:
                 output( "\tmovq $%d,%%rbx\n", (idx << 16) | j );
                 output( "\tcall %s\n", asm_name("__wine_delay_load_asm") );
-                output( "\tcmpq $0, .L__wine_delay_IAT+%d(%%rip)\n", (import->nb_imports + j + 1) * get_ptr_size() );
+                output( "\tcmpq $0, .L__wine_delay_IAT+%d(%%rip)\n", (table_begin + import->nb_imports + 1 + j) * get_ptr_size() );
                 output( "\tjne 1f\n" );
-                output( "\tmovq .L__wine_delay_IAT+%d(%%rip), %%rbx\n", j * get_ptr_size() );
+                output( "\tmovq .L__wine_delay_IAT+%d(%%rip), %%rbx\n", (table_begin + j) * get_ptr_size() );
                 output( "\tmovq %%rbx, 8(%%rax)\n");
                 output( "\tjmpq *(%%rax)\n" );
                 output( "\t1:\n" );
-                output( "\tjmpq *.L__wine_delay_IAT+%d(%%rip)\n", (import->nb_imports + j + 1) * get_ptr_size() );
+                output( "\tjmpq *.L__wine_delay_IAT+%d(%%rip)\n", (table_begin + import->nb_imports + 1 + j) * get_ptr_size() );
                 break;
             case CPU_ARM:
             {
@@ -1193,6 +1195,7 @@ static void output_delayed_import_thunks( const DLLSPEC *spec )
             output_cfi( ".cfi_endproc" );
         }
         idx++;
+        table_begin += (import->nb_imports + 1) * 2;
     }
     output_function_size( delayed_import_loaders );
 
@@ -1207,6 +1210,7 @@ static void output_delayed_import_thunks( const DLLSPEC *spec )
             output_import_thunk( func->name ? func->name : func->export_name,
                                  ".L__wine_delay_IAT", pos, import->nb_imports );
         }
+        if (target_cpu == CPU_x86_32on64) pos += (import->nb_imports + 2) * get_ptr_size();
     }
     output_function_size( delayed_import_thunks );
 }
