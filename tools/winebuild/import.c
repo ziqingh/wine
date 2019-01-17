@@ -862,6 +862,7 @@ static void output_delayed_imports( const DLLSPEC *spec )
         output( "\t%s 0\n", get_asm_ptr_keyword() );   /* pUnloadIAT */
         output( "\t%s 0\n", get_asm_ptr_keyword() );   /* dwTimeStamp */
         j += import->nb_imports;
+        if (target_cpu == CPU_x86_32on64) j += import->nb_imports + 2;
         mod++;
     }
     output( "\t%s 0\n", get_asm_ptr_keyword() );   /* grAttrs */
