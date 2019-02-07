@@ -30,6 +30,7 @@ dnl **** Command-line arguments ****
 
 AC_ARG_ENABLE(win16, AS_HELP_STRING([--disable-win16],[do not include Win16 support]))
 AC_ARG_ENABLE(win64, AS_HELP_STRING([--enable-win64],[build a Win64 emulator on AMD64 (won't run Win32 binaries)]))
+AC_ARG_ENABLE(win32on64, AS_HELP_STRING([--enable-win32on64],[build a Win32 emulator on AMD64]))
 AC_ARG_ENABLE(tests, AS_HELP_STRING([--disable-tests],[do not build the regression tests]))
 AC_ARG_ENABLE(maintainer-mode, AS_HELP_STRING([--enable-maintainer-mode],[enable maintainer-specific build rules]))
 
@@ -148,7 +149,7 @@ esac
 
 case $host in
   x86_64*|amd64*)
-    if test "x$enable_win64" != "xyes" -a "$cross_compiling" != "yes"
+    if test "x$enable_win64" != "xyes" -a "x$enable_win32on64" != "xyes" -a "$cross_compiling" != "yes"
     then
       CC="$CC -m32"
       CXX="$CXX -m32"
@@ -161,6 +162,21 @@ case $host in
       PKG_CONFIG_PATH=${PKG_CONFIG_PATH:-/usr/lib/i386-linux-gnu/pkgconfig:/usr/lib/pkgconfig}
       export PKG_CONFIG_PATH
       enable_win16=${enable_win16:-yes}
+    elif test "x$enable_win64" != "xyes" -a "x$enable_win32on64" = "xyes" -a "$cross_compiling" != "yes"
+    then
+      if test "x${GCC}" = "xyes"
+      then
+        AC_MSG_CHECKING([whether $CC supports __builtin_ms_va_list])
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <stdarg.h>]], [[void func(__builtin_ms_va_list *args);]])],
+                          [AC_MSG_RESULT([yes])],
+                          [AC_MSG_RESULT([no])
+                           AC_MSG_ERROR([You need gcc >= 4.4 or clang >= 3.8 to build Wine as 64-bit.])])
+      fi
+      CC="$CC -mwine32 -minterop64-32-thunk-prefix=wine -minterop64-32-cs32-name=wine_32on64_cs32 -minterop64-32-cs64-name=wine_32on64_cs64"
+      CXX="$CXX -mwine32 -minterop64-32-thunk-prefix=wine -minterop64-32-cs32-name=wine_32on64_cs32 -minterop64-32-cs64-name=wine_32on64_cs64"
+      host_cpu="x86_32on64"
+      notice_platform="64-bit "
+      AC_SUBST(TARGETFLAGS,"-m64")
     else
       if test "x${GCC}" = "xyes"
       then
@@ -220,6 +236,7 @@ esac
 dnl enable_win16 defaults to yes on x86, to no on other CPUs
 enable_win16=${enable_win16:-no}
 enable_win64=${enable_win64:-no}
+enable_win32on64=${enable_win32on64:-no}
 
 dnl Disable winetest too if tests are disabled
 enable_winetest=${enable_winetest:-$enable_tests}
@@ -229,7 +246,15 @@ if test "x$enable_win64" = "xyes"
 then
     test -z "$with_wine64" || AC_MSG_ERROR([--enable-win64 and --with-wine64 are mutually exclusive.
 --enable-win64 should be used in the 64-bit build tree, --with-wine64 in the 32-bit Wow64 build tree.])
+    test "x$enable_win32on64" != "xyes" || AC_MSG_ERROR([--enable-win64 and --enable-win32on64 are mutually exclusive.
+--enable-win64 should be used in the 64-bit build tree, --enable-win32on64 in the 32-bit Wow64 build tree.])
     test "x$libdir" != "x\${exec_prefix}/lib" || libdir="\${exec_prefix}/lib64"
+fi
+
+dnl Some special cases for the 32-on-64-bit build
+if test "x$enable_win32on64" = "xyes"
+then
+    test "x$libdir" != "x\${exec_prefix}/lib" || libdir="\${exec_prefix}/lib32on64"
 fi
 
 AC_CACHE_CHECK([for the directory containing the Wine tools], wine_cv_toolsdir,
@@ -717,6 +742,7 @@ WINE_PATH_SONAME_TOOLS
 WINE_CONFIG_HELPERS
 
 wine_binary="wine"
+test "x$enable_win32on64" != "xyes" || wine_binary="wine32on64"
 test "x$enable_win64" != "xyes" || wine_binary="wine64"
 AC_SUBST(WINELOADER_PROGRAMS,"$wine_binary")
 libwine_soversion=`expr $libwine_version : '\([[0-9]]*\)\..*'`
@@ -2715,6 +2741,7 @@ dnl *** check for the need to define platform-specific symbols
 case $host_cpu in
   *i[[3456789]]86*) WINE_CHECK_DEFINE([__i386__]) ;;
   *x86_64*)         WINE_CHECK_DEFINE([__x86_64__]) ;;
+  *x86_32on64*)     WINE_CHECK_DEFINE([__i386_on_x86_64__]) ;;
   *sparc64*)        WINE_CHECK_DEFINE([__sparc64__]) ;;
   *sparc*)          WINE_CHECK_DEFINE([__sparc__]) ;;
   *powerpc64*)      WINE_CHECK_DEFINE([__powerpc64__]) ;;
@@ -2760,6 +2787,7 @@ WINE_CONFIG_SYMLINK(fonts,fonts,[marlett.ttf,symbol.ttf,tahoma.ttf,tahomabd.ttf,
 WINE_CONFIG_SYMLINK(loader,loader,[l_intl.nls])
 WINE_CONFIG_SYMLINK(,tools,[wine],,winewrapper)
 WINE_CONFIG_SYMLINK(,tools,[wine64],["x$enable_win64" != xno -o -n "$with_wine64"],winewrapper)
+WINE_CONFIG_SYMLINK(,tools,[wine32on64],["x$enable_win32on64" != xno -o -n "$with_wine64"],winewrapper)
 
 WINE_CONFIG_MAKEFILE(dlls/acledit)
 WINE_CONFIG_MAKEFILE(dlls/aclui)
@@ -4019,15 +4047,15 @@ then
     dnl Get rid of old symlinks
     rm -f fonts server 2>/dev/null
     WINE_APPEND_RULE(
-[all: loader/wine64 loader/wine64-preloader $with_wine64/loader/wine $with_wine64/loader/wine-preloader
+[all: loader/wine64 loader/wine64-preloader $with_wine64/loader/$wine_binary $with_wine64/loader/$wine_binary-preloader
 loader/wine64 loader/wine64-preloader:
 	rm -f \$[@] && \$(LN_S) $reldir$with_wine64/\$[@] \$[@]
-$with_wine64/loader/wine:
-	rm -f \$[@] && \$(LN_S) $ac_pwd/loader/wine \$[@]
-$with_wine64/loader/wine-preloader:
-	rm -f \$[@] && \$(LN_S) $ac_pwd/loader/wine-preloader \$[@]
+$with_wine64/loader/$wine_binary:
+	rm -f \$[@] && \$(LN_S) $ac_pwd/loader/$wine_binary \$[@]
+$with_wine64/loader/$wine_binary-preloader:
+	rm -f \$[@] && \$(LN_S) $ac_pwd/loader/$wine_binary-preloader \$[@]
 clean::
-	rm -f loader/wine64 loader/wine64-preloader $with_wine64/loader/wine $with_wine64/loader/wine-preloader])
+	rm -f loader/wine64 loader/wine64-preloader $with_wine64/loader/$wine_binary $with_wine64/loader/$wine_binary-preloader])
 else
     TOP_INSTALL_DEV="$TOP_INSTALL_DEV include"
     TOP_INSTALL_LIB="$TOP_INSTALL_LIB \
