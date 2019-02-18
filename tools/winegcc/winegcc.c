@@ -343,7 +343,7 @@ static const strarray* get_translator(struct options *opts)
     ret = strarray_fromstring( str, " " );
     free(str);
     if (opts->is32on64)
-        strarray_add( ret, strmake("-m32on64"));
+        strarray_add( ret, strmake("-mwine32"));
     else if (opts->force_pointer_size)
         strarray_add( ret, strmake("-m%u", 8 * opts->force_pointer_size ));
     return ret;
@@ -1033,7 +1033,7 @@ static void build(struct options* opts)
 
     spec_o_name = get_temp_file(output_name, ".spec.o");
     if (opts->is32on64)
-        strarray_add(spec_args, strmake("-m32on64"));
+        strarray_add(spec_args, strmake("-mwine32"));
     else if (opts->force_pointer_size)
         strarray_add(spec_args, strmake("-m%u", 8 * opts->force_pointer_size ));
     strarray_add(spec_args, "-D_REENTRANT");
@@ -1521,7 +1521,7 @@ int main(int argc, char **argv)
                         opts.force_pointer_size = 8;
 			raw_linker_arg = 1;
                     }
-            else if (strcmp("-m32on64", argv[i]) == 0)
+            else if (strcmp("-mwine32", argv[i]) == 0)
                     {
                         opts.is32on64 = 1;
                         opts.force_pointer_size = 8;
