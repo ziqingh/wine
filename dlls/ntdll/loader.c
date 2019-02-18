@@ -736,7 +736,7 @@ static FARPROC find_named_export( HMODULE module, const IMAGE_EXPORT_DIRECTORY *
 }
 
 
-#ifdef __x86_32on64__
+#ifdef __i386_on_x86_64__
 
 FARPROC CDECL __wine_get_extra_proc( HMODULE module, LPCSTR function )
 {
@@ -811,7 +811,7 @@ static BOOL import_dll( HMODULE module, const IMAGE_IMPORT_DESCRIPTOR *descr, LP
     PVOID protect_base;
     SIZE_T protect_size = 0;
     DWORD protect_old;
-#ifdef __x86_32on64__
+#ifdef __i386_on_x86_64__
     int module_hybrid = get_modref(module)->ldr.Flags & LDR_WINE_INTERNAL;
     int import_hybrid = 0;
 #endif
@@ -863,7 +863,7 @@ static BOOL import_dll( HMODULE module, const IMAGE_IMPORT_DESCRIPTOR *descr, LP
     while (import_list[protect_size].u1.Ordinal) protect_size++;
     protect_base = thunk_list;
     protect_size *= sizeof(*thunk_list);
-#ifdef __x86_32on64__
+#ifdef __i386_on_x86_64__
     import_hybrid = wmImp->ldr.Flags & LDR_WINE_INTERNAL;
     if (module_hybrid) protect_size *= 2;
 #endif
@@ -937,7 +937,7 @@ static BOOL import_dll( HMODULE module, const IMAGE_IMPORT_DESCRIPTOR *descr, LP
         thunk_list++;
     }
 
-#ifdef __x86_32on64__
+#ifdef __i386_on_x86_64__
     if (module_hybrid)
     {
         /* fill the additional import table */
@@ -3381,7 +3381,7 @@ void* WINAPI LdrResolveDelayLoadedAPI( void* base, const IMAGE_DELAYLOAD_DESCRIP
         nts = LdrGetProcedureAddress(*phmod, &fnc, 0, (void**)&fp);
     }
 
-#ifdef __x86_32on64__
+#ifdef __i386_on_x86_64__
     while (pIAT[id].u1.Function != 0) id++;
     id += addr - pIAT;
     if (__wine_is_module_hybrid(*phmod))
