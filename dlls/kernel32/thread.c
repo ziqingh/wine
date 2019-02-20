@@ -748,6 +748,60 @@ __ASM_STDCALL_FUNC( GetCurrentThreadId, 0, ".byte 0x64\n\tmovl 0x24,%eax\n\tret"
 /* HANDLE WINAPI GetProcessHeap(void) */
 __ASM_STDCALL_FUNC( GetProcessHeap, 0, ".byte 0x64\n\tmovl 0x30,%eax\n\tmovl 0x18(%eax),%eax\n\tret");
 
+#elif defined(__i386_on_x86_64__)
+
+/***********************************************************************
+ *		SetLastError (KERNEL32.@)
+ */
+/* void WINAPI SetLastError( DWORD error ); */
+__ASM_STDCALL_FUNC( SetLastError, 4,
+                    "movl "WINE32_EXTRA_DIST"+4(%esp),%ecx\n\t"
+                    ".byte 0x65\n\t"
+                    "movl 0x30,%eax\n\t"
+                    "movl %ecx,0x34(%eax)\n\t"
+                    "retq $("WINE32_EXTRA_SIZE"+4)" )
+
+/***********************************************************************
+ *		GetLastError (KERNEL32.@)
+ */
+/* DWORD WINAPI GetLastError(void); */
+__ASM_STDCALL_FUNC( GetLastError, 0,
+                    ".byte 0x65\n\t"
+                    "movl 0x30,%eax\n\t"
+                    "movl 0x68(%eax),%eax\n\t"
+                    "retq $"WINE32_EXTRA_SIZE );
+
+/***********************************************************************
+ *		GetCurrentProcessId (KERNEL32.@)
+ */
+/* DWORD WINAPI GetCurrentProcessId(void) */
+__ASM_STDCALL_FUNC( GetCurrentProcessId, 0,
+                    ".byte 0x65\n\t"
+                    "movl 0x30,%eax\n\t"
+                    "movl 0x40(%eax),%eax\n\t"
+                    "retq $"WINE32_EXTRA_SIZE );
+
+/***********************************************************************
+ *		GetCurrentThreadId (KERNEL32.@)
+ */
+/* DWORD WINAPI GetCurrentThreadId(void) */
+__ASM_STDCALL_FUNC( GetCurrentThreadId, 0,
+                    ".byte 0x65\n\t"
+                    "movl 0x30,%eax\n\t"
+                    "movl 0x48(%eax),%eax\n\t"
+                    "retq $"WINE32_EXTRA_SIZE );
+
+/***********************************************************************
+ *		GetProcessHeap (KERNEL32.@)
+ */
+/* HANDLE WINAPI GetProcessHeap(void) */
+__ASM_STDCALL_FUNC( GetProcessHeap, 0,
+                    ".byte 0x65\n\t"
+                    "movl 0x30,%eax\n\t"
+                    "movl 0x60(%eax),%eax\n\t"
+                    "movl 0x30(%eax),%eax\n\t"
+                    "retq $"WINE32_EXTRA_SIZE );
+
 #elif defined(__x86_64__)
 
 #ifdef __APPLE__
