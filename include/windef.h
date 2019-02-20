@@ -134,6 +134,11 @@ extern "C" {
 # define WINAPIV __cdecl
 #endif
 
+#ifdef __i386_on_x86_64__
+#define WINE32_EXTRA_SIZE "8"
+#define WINE32_EXTRA_DIST "12"
+#endif
+
 #ifdef __WINESRC__
 #define __ONLY_IN_WINELIB(x)	do_not_use_this_in_wine
 #else
