@@ -1181,7 +1181,7 @@ FARPROC get_proc_address( HMODULE hModule, LPCSTR function )
     return fp;
 }
 
-#ifdef __x86_64__
+#if defined(__x86_64__) && !defined(__i386_on_x86_64__)
 /*
  * Work around a Delphi bug on x86_64.  When delay loading a symbol,
  * Delphi saves rcx, rdx, r8 and r9 to the stack.  It then calls
@@ -1215,14 +1215,14 @@ __ASM_GLOBAL_FUNC( get_proc_address_wrapper,
                    __ASM_CFI(".cfi_adjust_cfa_offset -8\n\t")
                    __ASM_CFI(".cfi_same_value %rbp\n\t")
                    "ret" )
-#else /* __x86_64__ */
+#else /* __x86_64__ && !__i386_on_x86_64__ */
 
 static inline FARPROC get_proc_address_wrapper( HMODULE module, LPCSTR function )
 {
     return get_proc_address( module, function );
 }
 
-#endif /* __x86_64__ */
+#endif /* __x86_64__ && !__i386_on_x86_64__ */
 
 FARPROC WINAPI GetProcAddress( HMODULE hModule, LPCSTR function )
 {

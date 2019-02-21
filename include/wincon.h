@@ -268,7 +268,7 @@ typedef struct tagINPUT_RECORD
 
 #define CONSOLE_TEXTMODE_BUFFER  1
 
-#ifdef __i386__
+#if defined(__i386__) || defined(__i386_on_x86_64__)
 /* Note: this should return a COORD, but calling convention for returning
  * structures is different between Windows and gcc on i386. */
 
@@ -297,10 +297,10 @@ static inline COORD __wine_GetLargestConsoleWindowSize_wrapper(HANDLE h)
 }
 #define GetLargestConsoleWindowSize(h) __wine_GetLargestConsoleWindowSize_wrapper(h)
 
-#else  /* __i386__ */
+#else  /* __i386__ || __i386_on_x86_64__ */
 WINBASEAPI COORD WINAPI GetConsoleFontSize(HANDLE, DWORD);
 WINBASEAPI COORD WINAPI GetLargestConsoleWindowSize(HANDLE);
-#endif  /* __i386__ */
+#endif  /* __i386__ || __i386_on_x86_64__ */
 
 WINBASEAPI BOOL   WINAPI AddConsoleAliasA(LPSTR,LPSTR,LPSTR);
 WINBASEAPI BOOL   WINAPI AddConsoleAliasW(LPWSTR,LPWSTR,LPWSTR);

@@ -2729,7 +2729,7 @@ BOOL WINAPI CreateProcessInternalW( HANDLE token, LPCWSTR app_name, LPWSTR cmd_l
         memset( &pe_info, 0, sizeof(pe_info) );
         type = BINARY_UNIX_LIB;
         /* assume current arch */
-#if defined(__i386__) || defined(__x86_64__)
+#if defined(__i386__) || defined(__x86_64__) || defined(__i386_on_x86_64__)
         pe_info.cpu = is_64bit ? CPU_x86_64 : CPU_x86;
 #elif defined(__powerpc__)
         pe_info.cpu = CPU_POWERPC;

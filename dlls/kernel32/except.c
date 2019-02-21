@@ -150,7 +150,7 @@ static int format_exception_msg( const EXCEPTION_POINTERS *ptr, char *buffer, in
     }
     if ((len<0) || (len>=size))
         return -1;
-#ifdef __i386__
+#if defined(__i386__) || defined(__i386_on_x86_64__)
     if (LOWORD(ptr->ContextRecord->SegCs) != wine_get_cs())
         len2 = snprintf(buffer+len, size-len, " at address 0x%04x:0x%08x",
                         LOWORD(ptr->ContextRecord->SegCs),

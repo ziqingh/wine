@@ -1386,7 +1386,7 @@ static COORD get_largest_console_window_size(HANDLE hConsole)
  *
  * VERSION: [i386]
  */
-#ifdef __i386__
+#if defined(__i386__) || defined(__i386_on_x86_64__)
 #undef GetLargestConsoleWindowSize
 DWORD WINAPI GetLargestConsoleWindowSize(HANDLE hConsoleOutput)
 {
@@ -1408,7 +1408,7 @@ COORD WINAPI GetLargestConsoleWindowSize(HANDLE hConsoleOutput)
     TRACE("(%p), returning %dx%d\n", hConsoleOutput, c.X, c.Y);
     return c;
 }
-#endif /* !defined(__i386__) */
+#endif /* defined(__i386__) || defined(__i386_on_x86_64__) */
 
 static WCHAR*	S_EditString /* = NULL */;
 static unsigned S_EditStrPos /* = 0 */;
@@ -3340,7 +3340,7 @@ static COORD get_console_font_size(HANDLE hConsole, DWORD index)
     return c;
 }
 
-#ifdef __i386__
+#if defined(__i386__) || defined(__i386_on_x86_64__)
 #undef GetConsoleFontSize
 DWORD WINAPI GetConsoleFontSize(HANDLE hConsole, DWORD index)
 {
@@ -3352,15 +3352,12 @@ DWORD WINAPI GetConsoleFontSize(HANDLE hConsole, DWORD index)
     x.c = get_console_font_size(hConsole, index);
     return x.w;
 }
-#endif /* defined(__i386__) */
-
-
-#ifndef __i386__
+#else
 COORD WINAPI GetConsoleFontSize(HANDLE hConsole, DWORD index)
 {
     return get_console_font_size(hConsole, index);
 }
-#endif /* !defined(__i386__) */
+#endif /* defined(__i386__) || defined(__i386_on_x86_64__) */
 
 BOOL WINAPI GetConsoleFontInfo(HANDLE hConsole, BOOL maximize, DWORD numfonts, CONSOLE_FONT_INFO *info)
 {
