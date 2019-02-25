@@ -1521,6 +1521,7 @@ static void build_windows_import_lib( DLLSPEC *spec )
         case CPU_x86_32on64:
             m_flag = "i386";
             as_flags = "--as-flags=--64";
+            break;
         default:
             m_flag = NULL;
             break;

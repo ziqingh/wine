@@ -615,7 +615,7 @@ static int parse_spec_ordinal( int ordinal, DLLSPEC *spec )
         assert( 0 );
     }
 
-    if (((odp->flags & FLAG_CPU_MASK) && !(odp->flags & FLAG_CPU(target_cpu))))
+    if ((odp->flags & FLAG_CPU_MASK) && !(odp->flags & FLAG_CPU(target_cpu)))
     {
         /* ignore this entry point */
         spec->nb_entry_points--;

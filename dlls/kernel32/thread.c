@@ -241,7 +241,7 @@ BOOL WINAPI SetThreadContext( HANDLE handle,           /* [in]  Handle to thread
  */
 BOOL WINAPI Wow64SetThreadContext( HANDLE handle, const WOW64_CONTEXT *context)
 {
-#if defined(__i386__) || defined(__i386_on_x86_64_)
+#if defined(__i386__) || defined(__i386_on_x86_64__)
     NTSTATUS status = NtSetContextThread( handle, (const CONTEXT *)context );
 #elif defined(__x86_64__)
     NTSTATUS status = RtlWow64SetThreadContext( handle, context );
@@ -274,7 +274,7 @@ BOOL WINAPI GetThreadContext( HANDLE handle,     /* [in]  Handle to thread with 
  */
 BOOL WINAPI Wow64GetThreadContext( HANDLE handle, WOW64_CONTEXT *context)
 {
-#if defined(__i386__) || defined(__i386_on_x86_64_
+#if defined(__i386__) || defined(__i386_on_x86_64__)
     NTSTATUS status = NtGetContextThread( handle, (CONTEXT *)context );
 #elif defined(__x86_64__)
     NTSTATUS status = RtlWow64GetThreadContext( handle, context );
