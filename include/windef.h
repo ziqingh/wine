@@ -135,8 +135,7 @@ extern "C" {
 #endif
 
 #ifdef __i386_on_x86_64__
-#define WINE32_EXTRA_SIZE "8"
-#define WINE32_EXTRA_DIST "12"
+#define __ASM_EXTRA_DIST "16"
 #endif
 
 #ifdef __WINESRC__
