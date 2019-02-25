@@ -134,10 +134,6 @@ extern "C" {
 # define WINAPIV __cdecl
 #endif
 
-#ifdef __i386_on_x86_64__
-#define __ASM_EXTRA_DIST "16"
-#endif
-
 #ifdef __WINESRC__
 #define __ONLY_IN_WINELIB(x)	do_not_use_this_in_wine
 #else
@@ -465,6 +461,31 @@ typedef enum DPI_AWARENESS
 #define DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE    ((DPI_AWARENESS_CONTEXT)-3)
 #define DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 ((DPI_AWARENESS_CONTEXT)-4)
 #define DPI_AWARENESS_CONTEXT_UNAWARE_GDISCALED    ((DPI_AWARENESS_CONTEXT)-5)
+
+#ifdef __i386_on_x86_64__
+#define __ASM_EXTRA_DIST "16"
+
+#ifdef __APPLE__
+#define __ASM_THUNK_ALIGN ".align 5\n\t"
+#else
+#define __ASM_THUNK_ALIGN ".align 32\n\t"
+#endif
+
+#define __ASM_THUNK_PREFIX        __ASM_NAME("wine")
+#define __ASM_THUNK_NAME(name)    __ASM_THUNK_PREFIX "_thunk_" name
+#define __ASM_THUNK_DEFINE(name,code) asm(".text\n\t"                        \
+    __ASM_THUNK_ALIGN                                                        \
+    ".quad " __ASM_NAME(#name) " - (" __ASM_THUNK_NAME(#name) " + 7)\n\t"    \
+    ".quad 0x77496e4554683332\n\t"                                           \
+    ".globl " __ASM_THUNK_NAME(#name) "\n\t"                                 \
+    "\n" __ASM_THUNK_NAME(#name) ":\n\t"                                     \
+    ".cfi_startproc\n\t"                                                     \
+    ".code32\n\t"                                                            \
+    code "\n\t"                                                              \
+    ".code64\n\t"                                                            \
+    ".cfi_endproc\n\t"                                                       \
+    ".previous");
+#endif
 
 #ifdef __cplusplus
 }
