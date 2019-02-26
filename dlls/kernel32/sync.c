@@ -2643,6 +2643,38 @@ __ASM_STDCALL_FUNC(InterlockedDecrement, 4,
                    "decl %eax\n\t"
                    "retq")
 
+/***********************************************************************
+ *		32-bit implements
+ */
+__ASM_THUNK_STDCALL(InterlockedCompareExchange, 12,
+                    "movl 12(%esp),%eax\n\t"
+                    "movl 8(%esp),%ecx\n\t"
+                    "movl 4(%esp),%edx\n\t"
+                    "lock; cmpxchgl %ecx,(%edx)\n\t"
+                    "ret $12")
+__ASM_THUNK_STDCALL(InterlockedExchange, 8,
+                    "movl 8(%esp),%eax\n\t"
+                    "movl 4(%esp),%edx\n\t"
+                    "lock; xchgl %eax,(%edx)\n\t"
+                    "ret $8")
+__ASM_THUNK_STDCALL(InterlockedExchangeAdd, 8,
+                    "movl 8(%esp),%eax\n\t"
+                    "movl 4(%esp),%edx\n\t"
+                    "lock; xaddl %eax,(%edx)\n\t"
+                    "ret $8")
+__ASM_THUNK_STDCALL(InterlockedIncrement, 4,
+                    "movl 4(%esp),%edx\n\t"
+                    "movl $1,%eax\n\t"
+                    "lock; xaddl %eax,(%edx)\n\t"
+                    "incl %eax\n\t"
+                    "ret $4")
+__ASM_THUNK_STDCALL(InterlockedDecrement, 4,
+                    "movl 4(%esp),%edx\n\t"
+                    "movl $-1,%eax\n\t"
+                    "lock; xaddl %eax,(%edx)\n\t"
+                    "decl %eax\n\t"
+                    "ret $4")
+
 #endif  /* __i386__ */
 
 /***********************************************************************

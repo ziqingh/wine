@@ -738,6 +738,19 @@ __ASM_STDCALL_FUNC( SetLastError, 4,
                     "movl %eax,0x34\n\t"
                     "retq" )
 
+/***********************************************************************
+ *		32-bit implements
+ */
+__ASM_THUNK_STDCALL( SetLastError, 4,
+                     "movl 4(%esp),%eax\n\t"
+                     ".byte 0x64\n\t"
+                     "movl %eax,0x34\n\t"
+                     "ret $4" )
+__ASM_THUNK_STDCALL( GetLastError, 0, ".byte 0x64\n\tmovl 0x34,%eax\n\tret" )
+__ASM_THUNK_STDCALL( GetCurrentProcessId, 0, ".byte 0x64\n\tmovl 0x20,%eax\n\tret" )
+__ASM_THUNK_STDCALL( GetCurrentThreadId, 0, ".byte 0x64\n\tmovl 0x24,%eax\n\tret" )
+__ASM_THUNK_STDCALL( GetProcessHeap, 0, ".byte 0x64\n\tmovl 0x30,%eax\n\tmovl 0x18(%eax),%eax\n\tret")
+
 #endif /* __i386__ */
 
 /***********************************************************************

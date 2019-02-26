@@ -471,20 +471,23 @@ typedef enum DPI_AWARENESS
 #define __ASM_THUNK_ALIGN ".align 32\n\t"
 #endif
 
-#define __ASM_THUNK_PREFIX        __ASM_NAME("wine")
-#define __ASM_THUNK_NAME(name)    __ASM_THUNK_PREFIX "_thunk_" name
-#define __ASM_THUNK_DEFINE(name,code) asm(".text\n\t"                        \
-    __ASM_THUNK_ALIGN                                                        \
-    ".quad " __ASM_NAME(#name) " - (" __ASM_THUNK_NAME(#name) " + 7)\n\t"    \
-    ".quad 0x77496e4554683332\n\t"                                           \
-    ".globl " __ASM_THUNK_NAME(#name) "\n\t"                                 \
-    "\n" __ASM_THUNK_NAME(#name) ":\n\t"                                     \
-    ".cfi_startproc\n\t"                                                     \
-    ".code32\n\t"                                                            \
-    code "\n\t"                                                              \
-    ".code64\n\t"                                                            \
-    ".cfi_endproc\n\t"                                                       \
+#define __ASM_THUNK_PREFIX        "wine"
+#define __ASM_THUNK_NAME(name)    __ASM_NAME(__ASM_THUNK_PREFIX "_thunk_" name)
+#define __ASM_THUNK_MAGIC         ".quad 0x77496e4554683332\n\t"
+#define __ASM_THUNK_DEFINE(name,suffix,code) asm(".text\n\t"    \
+    __ASM_THUNK_ALIGN                                           \
+    ".quad " __ASM_NAME(#name suffix) " - (" __ASM_THUNK_NAME(#name suffix) " + 7)\n\t" \
+    __ASM_THUNK_MAGIC                                           \
+    ".globl " __ASM_THUNK_NAME(#name suffix) "\n\t"             \
+    "\n" __ASM_THUNK_NAME(#name suffix) ":\n\t"                 \
+    ".cfi_startproc\n\t"                                        \
+    ".code32\n\t"                                               \
+    code "\n\t"                                                 \
+    ".code64\n\t"                                               \
+    ".cfi_endproc\n\t"                                          \
     ".previous");
+#define __ASM_THUNK_STDCALL(name,args,code)    __ASM_THUNK_DEFINE(name,__ASM_STDCALL(args),code)
+#define __ASM_THUNK_GLOBAL(name,code)          __ASM_THUNK_DEFINE(name,"",code)
 #endif
 
 #ifdef __cplusplus
