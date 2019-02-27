@@ -86,7 +86,7 @@ extern int wine_mmap_is_in_reserved_area( void *addr, size_t size );
 extern int wine_mmap_enum_reserved_areas( int (*enum_func)(void *base, size_t size, void *arg),
                                           void *arg, int top_down );
 
-#ifdef __i386__
+#if defined(__i386__) || defined(__i386_on_x86_64__)
 
 /* LDT management */
 
@@ -194,7 +194,7 @@ __DEFINE_SET_SEG(gs)
 #undef __DEFINE_GET_SEG
 #undef __DEFINE_SET_SEG
 
-#endif  /* __i386__ */
+#endif  /* __i386__ || __i386_on_x86_64__ */
 
 #ifdef __cplusplus
 }

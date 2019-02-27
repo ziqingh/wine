@@ -34,7 +34,7 @@
 #include "wine/library.h"
 #include "wine/asm.h"
 
-#ifdef __i386__
+#if (defined(__i386__) || defined(__i386_on_x86_64__))
 
 #ifdef __linux__
 
@@ -463,7 +463,13 @@ __ASM_GLOBAL_FUNC( wine_get_es, "movw %es,%ax\n\tret" )
 __ASM_GLOBAL_FUNC( wine_get_fs, "movw %fs,%ax\n\tret" )
 __ASM_GLOBAL_FUNC( wine_get_gs, "movw %gs,%ax\n\tret" )
 __ASM_GLOBAL_FUNC( wine_get_ss, "movw %ss,%ax\n\tret" )
+
+#ifdef __i386__
 __ASM_GLOBAL_FUNC( wine_set_fs, "movl 4(%esp),%eax\n\tmovw %ax,%fs\n\tret" )
 __ASM_GLOBAL_FUNC( wine_set_gs, "movl 4(%esp),%eax\n\tmovw %ax,%gs\n\tret" )
+#else
+__ASM_GLOBAL_FUNC( wine_set_fs, "movl "__ASM_EXTRA_DIST"+4(%esp),%eax\n\tmovw %ax,%fs\n\tretq" )
+__ASM_GLOBAL_FUNC( wine_set_gs, "movl "__ASM_EXTRA_DIST"+4(%esp),%eax\n\tmovw %ax,%gs\n\tretq" )
+#endif
 
-#endif /* __i386__ */
+#endif /* __i386__ || __i386_on_x86_64__ */
