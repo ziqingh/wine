@@ -476,7 +476,7 @@ void WINAPI KeInitializeSpinLock( KSPIN_LOCK *lock )
 
 static inline void small_pause(void)
 {
-#ifdef __x86_64__
+#if defined(__x86_64__) || defined(__i386_on_x86_64__)
     __asm__ __volatile__( "rep;nop" : : : "memory" );
 #else
     __asm__ __volatile__( "" : : : "memory" );

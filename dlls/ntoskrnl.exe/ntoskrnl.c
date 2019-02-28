@@ -3718,7 +3718,22 @@ INT __cdecl NTOSKRNL_wcsncmp( LPCWSTR str1, LPCWSTR str2, INT n )
 }
 
 
-#ifdef __x86_64__
+#ifdef __i386_on_x86_64__
+/**************************************************************************
+ *           _chkstk   (NTOSKRNL.@)
+ */
+void CDECL _chkstk(void)
+{
+    ERR("Should not be reached in x86_32on64 mode\n");
+}
+__ASM_STDCALL_FUNC32( __ASM_THUNK_NAME(__chkstk), 0,
+                      "negl %eax\n\t"
+                      "addl %esp,%eax\n\t"
+                      "xchgl %esp,%eax\n\t"
+                      "movl 0(%eax),%eax\n\t"  /* copy return address from old location */
+                      "movl %eax,0(%esp)\n\t"
+                      "ret" )
+#elif defined(__x86_64__)
 /**************************************************************************
  *		__chkstk (NTOSKRNL.@)
  *
