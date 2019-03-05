@@ -48,6 +48,7 @@
 #include "undocshell.h"
 #include "pidl.h"
 #include "wine/unicode.h"
+#include "wine/library.h"
 #include "shlwapi.h"
 #include "xdg.h"
 #include "sddl.h"
@@ -56,8 +57,6 @@
 #include "shobjidl.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(shell);
-
-static const BOOL is_win64 = sizeof(void *) > sizeof(int);
 
 /*
 	########## Combining and Constructing paths ##########
@@ -3427,7 +3426,7 @@ static HRESULT _SHGetDefaultValue(BYTE folder, LPWSTR pszPath)
     if (!pszPath)
         return E_INVALIDARG;
 
-    if (!is_win64)
+    if (!wine_is_64bit())
     {
         BOOL is_wow64;
 
@@ -3539,7 +3538,7 @@ static HRESULT _SHGetCurrentVersionPath(DWORD dwFlags, BYTE folder,
                 case CSIDL_PROGRAM_FILESX86:
                 case CSIDL_PROGRAM_FILES_COMMONX86:
                     /* these two should never be set on 32-bit setups */
-                    if (!is_win64)
+                    if (!wine_is_64bit())
                     {
                         BOOL is_wow64;
                         IsWow64Process( GetCurrentProcess(), &is_wow64 );

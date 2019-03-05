@@ -42,6 +42,7 @@
 
 #include "wine/debug.h"
 #include "wine/unicode.h"
+#include "wine/library.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(ole);
 WINE_DECLARE_DEBUG_CHANNEL(heap);
@@ -831,7 +832,7 @@ static BOOL actctx_get_typelib_module(REFIID iid, WCHAR *module, DWORD len)
 
 static HRESULT reg_get_typelib_module(REFIID iid, WCHAR *module, DWORD len)
 {
-    REGSAM opposite = (sizeof(void*) == 8) ? KEY_WOW64_32KEY : KEY_WOW64_64KEY;
+    REGSAM opposite = wine_is_64bit() ? KEY_WOW64_32KEY : KEY_WOW64_64KEY;
     char tlguid[200], typelibkey[300], interfacekey[300], ver[100], tlfn[260];
     DWORD tlguidlen, verlen, type;
     LONG tlfnlen, err;
@@ -873,7 +874,7 @@ static HRESULT reg_get_typelib_module(REFIID iid, WCHAR *module, DWORD len)
 
     RegCloseKey(ikey);
 
-    sprintf(typelibkey, "Typelib\\%s\\%s\\0\\win%u", tlguid, ver, sizeof(void *) == 8 ? 64 : 32);
+    sprintf(typelibkey, "Typelib\\%s\\%s\\0\\win%u", tlguid, ver, wine_is_64bit() ? 64 : 32);
     tlfnlen = sizeof(tlfn);
     if (RegQueryValueA(HKEY_CLASSES_ROOT, typelibkey, tlfn, &tlfnlen))
     {

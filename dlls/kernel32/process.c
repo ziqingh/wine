@@ -85,7 +85,6 @@ typedef struct
 static DWORD shutdown_flags = 0;
 static DWORD shutdown_priority = 0x280;
 static BOOL is_wow64;
-static const BOOL is_win64 = (sizeof(void *) > sizeof(int));
 
 HMODULE kernel32_handle = 0;
 SYSTEM_BASIC_INFORMATION system_info = { 0 };
@@ -362,7 +361,7 @@ static BOOL get_builtin_path( const WCHAR *libname, const WCHAR *ext, WCHAR *fil
     UINT len;
     void *redir_disabled = 0;
 
-    *is_64bit = (sizeof(void*) > sizeof(int));
+    *is_64bit = wine_is_64bit();
 
     /* builtin names cannot be empty or contain spaces */
     if (!libname[0] || strchrW( libname, ' ' ) || strchrW( libname, '\t' )) return FALSE;
@@ -775,7 +774,7 @@ static void set_wow64_environment(void)
 
     if (GetEnvironmentVariableW( arch6432W, arch, ARRAY_SIZE( arch )))
     {
-        if (is_win64)
+        if (wine_is_64bit())
         {
             SetEnvironmentVariableW( archW, arch );
             SetEnvironmentVariableW( arch6432W, NULL );
@@ -803,8 +802,8 @@ static void set_wow64_environment(void)
 
     if ((value = get_reg_value( hkey, progdirW )))
     {
-        if (is_win64 || is_wow64) SetEnvironmentVariableW( progw6432W, value );
-        if (is_win64 || !is_wow64) SetEnvironmentVariableW( progfilesW, value );
+        if (wine_is_64bit() || is_wow64) SetEnvironmentVariableW( progw6432W, value );
+        if (wine_is_64bit() || !is_wow64) SetEnvironmentVariableW( progfilesW, value );
         HeapFree( GetProcessHeap(), 0, value );
     }
     if (is_wow64 && (value = get_reg_value( hkey, progdir86W )))
@@ -817,8 +816,8 @@ static void set_wow64_environment(void)
 
     if ((value = get_reg_value( hkey, commondirW )))
     {
-        if (is_win64 || is_wow64) SetEnvironmentVariableW( commonw6432W, value );
-        if (is_win64 || !is_wow64) SetEnvironmentVariableW( commonfilesW, value );
+        if (wine_is_64bit() || is_wow64) SetEnvironmentVariableW( commonw6432W, value );
+        if (wine_is_64bit() || !is_wow64) SetEnvironmentVariableW( commonfilesW, value );
         HeapFree( GetProcessHeap(), 0, value );
     }
     if (is_wow64 && (value = get_reg_value( hkey, commondir86W )))
@@ -1127,7 +1126,7 @@ static void init_windows_dirs(void)
     static const WCHAR default_syswow64W[] = {'C',':','\\','w','i','n','d','o','w','s',
                                               '\\','s','y','s','w','o','w','6','4',0};
 
-    if (is_win64 || is_wow64)   /* SysWow64 is always defined on 64-bit */
+    if (wine_is_64bit() || is_wow64)   /* SysWow64 is always defined on 64-bit */
     {
         DIR_SysWow64 = default_syswow64W;
         memcpy( winevdm, default_syswow64W, sizeof(default_syswow64W) - sizeof(WCHAR) );
@@ -1992,12 +1991,12 @@ static const char *get_alternate_loader( char **ret_env )
 
     *ret_env = NULL;
 
-    if (wine_get_build_dir()) loader = is_win64 ? "loader/wine" : "loader/wine64";
+    if (wine_get_build_dir()) loader = wine_is_64bit() ? "loader/wine" : "loader/wine64";
 
     if (loader_env)
     {
         int len = strlen( loader_env );
-        if (!is_win64)
+        if (!wine_is_64bit())
         {
             if (!(env = HeapAlloc( GetProcessHeap(), 0, sizeof("WINELOADER=") + len + 2 ))) return NULL;
             strcpy( env, "WINELOADER=" );
@@ -2019,7 +2018,7 @@ static const char *get_alternate_loader( char **ret_env )
         }
         *ret_env = env;
     }
-    if (!loader) loader = is_win64 ? "wine" : "wine64";
+    if (!loader) loader = wine_is_64bit() ? "wine" : "wine64";
     return loader;
 }
 
@@ -2106,7 +2105,7 @@ static pid_t spawn_loader( const RTL_USER_PROCESS_PARAMETERS *params, int socket
 
     argv = build_argv( &params->CommandLine, 1 );
 
-    if (!is_win64 ^ !is_64bit_arch( pe_info->cpu ))
+    if (!wine_is_64bit() ^ !is_64bit_arch( pe_info->cpu ))
         loader = get_alternate_loader( &wineloader );
 
     wine_server_handle_to_fd( params->hStdInput, FILE_READ_DATA, &stdin_fd, NULL );
@@ -2182,7 +2181,7 @@ static NTSTATUS exec_loader( const RTL_USER_PROCESS_PARAMETERS *params, int sock
 
     if (!(argv = build_argv( &params->CommandLine, 1 ))) return STATUS_NO_MEMORY;
 
-    if (!is_win64 ^ !is_64bit_arch( pe_info->cpu ))
+    if (!wine_is_64bit() ^ !is_64bit_arch( pe_info->cpu ))
         loader = get_alternate_loader( &wineloader );
 
     /* Reset signals that we previously set to SIG_IGN */

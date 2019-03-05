@@ -29,6 +29,7 @@
 #include "parser.tab.h"
 
 #include "wine/debug.h"
+#include "wine/library.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(jscript);
 
@@ -915,8 +916,8 @@ static BOOL init_cc(parser_ctx_t *ctx)
     cc->vars = NULL;
 
     if(!new_cc_var(cc, _jscriptW, -1, ccval_bool(TRUE))
-       || !new_cc_var(cc, sizeof(void*) == 8 ? _win64W : _win32W, -1, ccval_bool(TRUE))
-       || !new_cc_var(cc, sizeof(void*) == 8 ? _amd64W : _x86W, -1, ccval_bool(TRUE))
+       || !new_cc_var(cc, wine_is_64bit() ? _win64W : _win32W, -1, ccval_bool(TRUE))
+       || !new_cc_var(cc, wine_is_64bit() ? _amd64W : _x86W, -1, ccval_bool(TRUE))
        || !new_cc_var(cc, _jscript_versionW, -1, ccval_num(JSCRIPT_MAJOR_VERSION + (DOUBLE)JSCRIPT_MINOR_VERSION/10.0))
        || !new_cc_var(cc, _jscript_buildW, -1, ccval_num(JSCRIPT_BUILD_VERSION))) {
         release_cc(cc);

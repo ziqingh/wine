@@ -37,6 +37,7 @@
 #include "shlwapi.h"
 #include "imagehlp.h"
 #include "wine/unicode.h"
+#include "wine/library.h"
 #include "winver.h"
 
 #include "msipriv.h"
@@ -2579,7 +2580,7 @@ static const WCHAR *get_root_key( MSIPACKAGE *package, INT root, HKEY *root_key 
 static inline REGSAM get_registry_view( const MSICOMPONENT *comp )
 {
     REGSAM view = 0;
-    if (is_wow64 || is_64bit)
+    if (is_wow64 || wine_is_64bit())
         view |= (comp->Attributes & msidbComponentAttributes64bit) ? KEY_WOW64_64KEY : KEY_WOW64_32KEY;
     return view;
 }

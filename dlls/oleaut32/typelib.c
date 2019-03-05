@@ -76,6 +76,7 @@
 #include "wine/asm.h"
 #include "wine/heap.h"
 #include "wine/list.h"
+#include "wine/library.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(ole);
 WINE_DECLARE_DEBUG_CHANNEL(typelib);
@@ -826,7 +827,7 @@ HRESULT WINAPI RegisterTypeLib(
                         kind == TKIND_DISPATCH)
 		    {
                         BOOL is_wow64;
-                        DWORD opposite = (sizeof(void*) == 8 ? KEY_WOW64_32KEY : KEY_WOW64_64KEY);
+                        DWORD opposite = (wine_is_64bit() ? KEY_WOW64_32KEY : KEY_WOW64_64KEY);
 
                         /* register interface<->typelib coupling */
                         TLB_register_interface(attr, name, tattr, 0);
@@ -954,7 +955,7 @@ HRESULT WINAPI UnRegisterTypeLib(
             kind == TKIND_DISPATCH)
         {
             BOOL is_wow64;
-            REGSAM opposite = (sizeof(void*) == 8 ? KEY_WOW64_32KEY : KEY_WOW64_64KEY);
+            REGSAM opposite = (wine_is_64bit() ? KEY_WOW64_32KEY : KEY_WOW64_64KEY);
 
             TLB_unregister_interface(&typeAttr->guid, 0);
 

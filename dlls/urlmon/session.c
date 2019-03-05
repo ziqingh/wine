@@ -20,6 +20,7 @@
 #include "winreg.h"
 
 #include "wine/debug.h"
+#include "wine/library.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(urlmon);
 
@@ -554,7 +555,7 @@ static void ensure_useragent(void)
     GetVersionExW(&info);
     is_nt = info.dwPlatformId == VER_PLATFORM_WIN32_NT ? ntW : emptyW;
 
-    if(sizeof(void*) == 8)
+    if (wine_is_64bit())
         os_type = win64W;
     else if(IsWow64Process(GetCurrentProcess(), &is_wow) && is_wow)
         os_type = wow64W;

@@ -172,7 +172,7 @@ static int check_library_arch( int fd )
 
     if (read( fd, &header, sizeof(header) ) != sizeof(header)) return 1;
     if (header.magic != 0xfeedface) return 1;
-    if (sizeof(void *) == sizeof(int)) return !(header.cputype >> 24);
+    if (!wine_is_64bit()) return !(header.cputype >> 24);
     else return (header.cputype >> 24) == 1; /* CPU_ARCH_ABI64 */
 #else
     struct  /* ELF header */
@@ -191,7 +191,7 @@ static int check_library_arch( int fd )
 #else
     if (header.data != 1 /* ELFDATA2LSB */) return 1;
 #endif
-    if (sizeof(void *) == sizeof(int)) return header.class == 1; /* ELFCLASS32 */
+    if (!wine_is_64bit()) return header.class == 1; /* ELFCLASS32 */
     else return header.class == 2; /* ELFCLASS64 */
 #endif
 }

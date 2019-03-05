@@ -27,6 +27,7 @@
 #include "resource.h"
 #include "regstr.h"
 #include "wine/debug.h"
+#include "wine/library.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(uninstaller);
 
@@ -306,7 +307,6 @@ static int FetchFromRootKey(HKEY root)
 
 static int FetchUninstallInformation(void)
 {
-    static const BOOL is_64bit = sizeof(void *) > sizeof(int);
     int rc = 0;
     HKEY root;
 
@@ -320,7 +320,7 @@ static int FetchUninstallInformation(void)
         rc |= FetchFromRootKey(root);
         RegCloseKey(root);
     }
-    if (is_64bit &&
+    if (wine_is_64bit() &&
         !RegOpenKeyExW(HKEY_LOCAL_MACHINE, PathUninstallW, 0, KEY_READ|KEY_WOW64_32KEY, &root))
     {
         rc |= FetchFromRootKey(root);

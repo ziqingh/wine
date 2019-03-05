@@ -40,6 +40,7 @@
 #include "msipriv.h"
 #include "winuser.h"
 #include "wine/unicode.h"
+#include "wine/library.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(msi);
 
@@ -760,7 +761,7 @@ UINT ACTION_RegisterClassInfo(MSIPACKAGE *package)
     if (r != ERROR_SUCCESS)
         return r;
 
-    if (package->platform == PLATFORM_INTEL)
+    if (wine_is_64bit() && package->platform == PLATFORM_INTEL)
         access |= KEY_WOW64_32KEY;
     else
         access |= KEY_WOW64_64KEY;
@@ -927,7 +928,7 @@ UINT ACTION_UnregisterClassInfo( MSIPACKAGE *package )
     if (r != ERROR_SUCCESS)
         return r;
 
-    if (package->platform == PLATFORM_INTEL)
+    if (wine_is_64bit() && package->platform == PLATFORM_INTEL)
         access |= KEY_WOW64_32KEY;
     else
         access |= KEY_WOW64_64KEY;

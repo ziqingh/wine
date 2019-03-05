@@ -58,8 +58,6 @@ WINE_DEFAULT_DEBUG_CHANNEL(process);
 
 static ULONG execute_flags = MEM_EXECUTE_OPTION_DISABLE;
 
-static const BOOL is_win64 = (sizeof(void *) > sizeof(int));
-
 static const char * const cpu_names[] = { "x86", "x86_64", "PowerPC", "ARM", "ARM64" };
 
 static inline BOOL is_64bit_arch( cpu_type_t cpu )
@@ -1001,12 +999,12 @@ static const char *get_alternate_loader( char **ret_env )
 
     *ret_env = NULL;
 
-    if (wine_get_build_dir()) loader = is_win64 ? "loader/wine" : "loader/wine64";
+    if (wine_get_build_dir()) loader = wine_is_64bit() ? "loader/wine" : "loader/wine64";
 
     if (loader_env)
     {
         int len = strlen( loader_env );
-        if (!is_win64)
+        if (!wine_is_64bit())
         {
             if (!(env = RtlAllocateHeap( GetProcessHeap(), 0, sizeof("WINELOADER=") + len + 2 ))) return NULL;
             strcpy( env, "WINELOADER=" );
@@ -1028,7 +1026,7 @@ static const char *get_alternate_loader( char **ret_env )
         }
         *ret_env = env;
     }
-    if (!loader) loader = is_win64 ? "wine" : "wine64";
+    if (!loader) loader = wine_is_64bit() ? "wine" : "wine64";
     return loader;
 }
 
@@ -1068,7 +1066,7 @@ static NTSTATUS spawn_loader( const RTL_USER_PROCESS_PARAMETERS *params, int soc
 
     argv = build_argv( &params->CommandLine, 1 );
 
-    if (!is_win64 ^ !is_64bit_arch( pe_info->cpu ))
+    if (!wine_is_64bit() ^ !is_64bit_arch( pe_info->cpu ))
         loader = get_alternate_loader( &wineloader );
 
     wine_server_handle_to_fd( params->hStdInput, FILE_READ_DATA, &stdin_fd, NULL );

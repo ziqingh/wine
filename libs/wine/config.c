@@ -451,7 +451,7 @@ done:
     if (build_dir)
     {
         argv0_name = build_path( "loader/", basename );
-        if (sizeof(int) == sizeof(void *))
+        if (!wine_is_64bit())
         {
             char *loader, *linkname = build_path( build_dir, "loader/wine64" );
             if ((loader = symlink_dirname( linkname )))

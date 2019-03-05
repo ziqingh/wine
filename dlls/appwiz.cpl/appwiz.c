@@ -45,6 +45,7 @@
 #include "wine/unicode.h"
 #include "wine/list.h"
 #include "wine/debug.h"
+#include "wine/library.h"
 #include "appwiz.h"
 #include "res.h"
 
@@ -756,7 +757,6 @@ static HIMAGELIST AddListViewImageList(HWND hWnd)
  */
 static HIMAGELIST ResetApplicationList(BOOL bFirstRun, HWND hWnd, HIMAGELIST hImageList)
 {
-    static const BOOL is_64bit = sizeof(void *) > sizeof(int);
     HWND hWndListView;
     HKEY hkey;
 
@@ -786,7 +786,7 @@ static HIMAGELIST ResetApplicationList(BOOL bFirstRun, HWND hWnd, HIMAGELIST hIm
         ReadApplicationsFromRegistry(hkey);
         RegCloseKey(hkey);
     }
-    if (is_64bit &&
+    if (wine_is_64bit() &&
         !RegOpenKeyExW(HKEY_LOCAL_MACHINE, PathUninstallW, 0, KEY_READ|KEY_WOW64_32KEY, &hkey))
     {
         ReadApplicationsFromRegistry(hkey);

@@ -46,6 +46,7 @@
 #include "wine/debug.h"
 #include "wine/exception.h"
 #include "wine/unicode.h"
+#include "wine/library.h"
 
 #include "msipriv.h"
 #include "winemsi.h"
@@ -1298,7 +1299,7 @@ static UINT validate_package( MSIPACKAGE *package )
 #endif
     if (package->platform == PLATFORM_X64)
     {
-        if (!is_64bit && !is_wow64)
+        if (!wine_is_64bit() && !is_wow64)
             return ERROR_INSTALL_PLATFORM_UNSUPPORTED;
         if (package->version < 200)
             return ERROR_INSTALL_PACKAGE_INVALID;

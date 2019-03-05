@@ -67,6 +67,7 @@
 
 #include "wine/unicode.h"
 #include "wine/debug.h"
+#include "wine/library.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(ole);
 
@@ -378,8 +379,7 @@ static HKEY create_classes_root_hkey(DWORD access)
 static inline HKEY get_classes_root_hkey( HKEY hkey, REGSAM access )
 {
     HKEY ret = hkey;
-    const BOOL is_win64 = sizeof(void*) > sizeof(int);
-    const BOOL force_wow32 = is_win64 && (access & KEY_WOW64_32KEY);
+    const BOOL force_wow32 = wine_is_64bit() && (access & KEY_WOW64_32KEY);
 
     if (hkey == HKEY_CLASSES_ROOT &&
         ((access & KEY_WOW64_64KEY) || !(ret = classes_root_hkey)))
@@ -2660,7 +2660,7 @@ HRESULT WINAPI CoGetPSClsid(REFIID riid, CLSID *pclsid)
     struct registered_psclsid *registered_psclsid;
     ACTCTX_SECTION_KEYED_DATA data;
     HRESULT hr;
-    REGSAM opposite = (sizeof(void*) > sizeof(int)) ? KEY_WOW64_32KEY : KEY_WOW64_64KEY;
+    REGSAM opposite = wine_is_64bit() ? KEY_WOW64_32KEY : KEY_WOW64_64KEY;
     BOOL is_wow64;
 
     TRACE("() riid=%s, pclsid=%p\n", debugstr_guid(riid), pclsid);

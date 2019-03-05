@@ -41,7 +41,6 @@
 #include "msiserver.h"
 #include "winemsi.h"
 
-static const BOOL is_64bit = sizeof(void *) > sizeof(int);
 BOOL is_wow64 DECLSPEC_HIDDEN;
 
 #define MSI_DATASIZEMASK 0x00ff

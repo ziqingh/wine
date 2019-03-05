@@ -29,6 +29,7 @@
 #include <userenv.h>
 
 #include "wine/debug.h"
+#include "wine/library.h"
 #include "svcctl.h"
 
 #include "services.h"
@@ -44,8 +45,6 @@ DWORD service_kill_timeout = 60000;
 static DWORD default_preshutdown_timeout = 180000;
 static void *environment = NULL;
 static HKEY service_current_key = NULL;
-
-static const BOOL is_win64 = (sizeof(void *) > sizeof(int));
 
 static const WCHAR SZ_LOCAL_SYSTEM[] = {'L','o','c','a','l','S','y','s','t','e','m',0};
 
@@ -732,7 +731,7 @@ static DWORD get_winedevice_binary_path(struct service_entry *service_entry, WCH
     WCHAR system_dir[MAX_PATH];
     DWORD type;
 
-    if (!is_win64)
+    if (!wine_is_64bit())
         *is_wow64 = FALSE;
     else if (GetBinaryTypeW(*path, &type))
         *is_wow64 = (type == SCS_32BIT_BINARY);

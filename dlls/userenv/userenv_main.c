@@ -33,6 +33,7 @@
 
 #include "wine/debug.h"
 #include "wine/unicode.h"
+#include "wine/library.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL( userenv );
 
@@ -163,7 +164,7 @@ static void set_wow64_environment(WCHAR **env)
     UNICODE_STRING nameW, valueW;
     WCHAR buf[64];
     HKEY hkey;
-    BOOL is_win64 = (sizeof(void *) > sizeof(int));
+    BOOL is_win64 = wine_is_64bit();
     BOOL is_wow64;
 
     IsWow64Process( GetCurrentProcess(), &is_wow64 );

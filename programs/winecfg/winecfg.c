@@ -37,13 +37,12 @@
 #include <wine/unicode.h>
 #include <wine/debug.h>
 #include <wine/list.h>
+#include <wine/library.h>
 
 WINE_DEFAULT_DEBUG_CHANNEL(winecfg);
 
 #include "winecfg.h"
 #include "resource.h"
-
-static const BOOL is_win64 = (sizeof(void *) > sizeof(int));
 
 HKEY config_key = NULL;
 HMENU hPopupMenus = 0;
@@ -622,7 +621,7 @@ static void process_setting(struct setting *s)
 {
     static const WCHAR softwareW[] = {'S','o','f','t','w','a','r','e','\\'};
     HKEY key;
-    BOOL needs_wow64 = (is_win64 && s->root == HKEY_LOCAL_MACHINE && s->path &&
+    BOOL needs_wow64 = (wine_is_64bit() && s->root == HKEY_LOCAL_MACHINE && s->path &&
                         !strncmpiW(s->path, softwareW, ARRAY_SIZE(softwareW)));
 
     if (s->value)

@@ -33,6 +33,9 @@
 #include "windef.h"
 #include "winternl.h"
 
+#include "wine/library.h"
+#undef strncpy
+
 
 /*********************************************************************
  *                  memchr   (NTDLL.@)
@@ -900,7 +903,7 @@ static int NTDLL_vsscanf( const char *str, const char *format, __ms_va_list ap)
             {
             case 'p':
             case 'P': /* pointer. */
-                if (sizeof(void *) == sizeof(LONGLONG)) I64_prefix = TRUE;
+                if (wine_is_64bit()) I64_prefix = TRUE;
                 /* fall through */
             case 'x':
             case 'X': /* hexadecimal integer. */

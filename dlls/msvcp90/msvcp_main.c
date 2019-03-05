@@ -23,6 +23,7 @@
 #include "windef.h"
 #include "winbase.h"
 #include "wine/debug.h"
+#include "wine/library.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(msvcp);
 
@@ -154,7 +155,7 @@ static void init_cxx_funcs(void)
     hcon = LoadLibraryA( CONCRT_NAME(_MSVCP_VER) );
     if (!hcon) FIXME( "%s not loaded\n", CONCRT_NAME(_MSVCP_VER) );
 #else
-    if (sizeof(void *) > sizeof(int))  /* 64-bit has different names */
+    if (wine_is_64bit())  /* 64-bit has different names */
     {
         MSVCRT_operator_new = (void*)GetProcAddress(hmod, "??2@YAPEAX_K@Z");
         MSVCRT_operator_delete = (void*)GetProcAddress(hmod, "??3@YAXPEAX@Z");
@@ -169,7 +170,7 @@ static void init_cxx_funcs(void)
 #endif
 
 #if _MSVCP_VER >= 110
-    if (sizeof(void *) > sizeof(int))  /* 64-bit has different names */
+    if (wine_is_64bit())  /* 64-bit has different names */
     {
         critical_section_ctor = (void*)GetProcAddress(hcon, "??0critical_section@Concurrency@@QEAA@XZ");
         critical_section_dtor = (void*)GetProcAddress(hcon, "??1critical_section@Concurrency@@QEAA@XZ");

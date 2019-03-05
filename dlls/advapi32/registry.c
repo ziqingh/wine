@@ -45,6 +45,7 @@
 #include "wine/unicode.h"
 #include "wine/debug.h"
 #include "wine/list.h"
+#include "wine/library.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(reg);
 
@@ -155,7 +156,7 @@ static HANDLE open_wow6432node( HANDLE key )
 static NTSTATUS create_key( HKEY *retkey, ACCESS_MASK access, OBJECT_ATTRIBUTES *attr,
                             const UNICODE_STRING *class, ULONG options, PULONG dispos )
 {
-    BOOL force_wow32 = is_win64 && (access & KEY_WOW64_32KEY);
+    BOOL force_wow32 = wine_is_64bit() && (access & KEY_WOW64_32KEY);
     NTSTATUS status = STATUS_OBJECT_NAME_NOT_FOUND;
     HANDLE subkey, root = attr->RootDirectory;
 
@@ -227,7 +228,7 @@ static NTSTATUS create_key( HKEY *retkey, ACCESS_MASK access, OBJECT_ATTRIBUTES 
 static NTSTATUS open_key( HKEY *retkey, DWORD options, ACCESS_MASK access, OBJECT_ATTRIBUTES *attr )
 {
     NTSTATUS status;
-    BOOL force_wow32 = is_win64 && (access & KEY_WOW64_32KEY);
+    BOOL force_wow32 = wine_is_64bit() && (access & KEY_WOW64_32KEY);
     HANDLE subkey, root = attr->RootDirectory;
     WCHAR *buffer = attr->ObjectName->Buffer;
     DWORD pos = 0, i = 0, len = attr->ObjectName->Length / sizeof(WCHAR);

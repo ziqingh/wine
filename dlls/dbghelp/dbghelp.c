@@ -24,6 +24,7 @@
 #include "winerror.h"
 #include "psapi.h"
 #include "wine/debug.h"
+#include "wine/library.h"
 #include "wdbgexts.h"
 #include "winnls.h"
 
@@ -88,7 +89,7 @@ struct process*    process_find_by_handle(HANDLE hProcess)
  */
 BOOL validate_addr64(DWORD64 addr)
 {
-    if (sizeof(void*) == sizeof(int) && (addr >> 32))
+    if (!wine_is_64bit() && (addr >> 32))
     {
         FIXME("Unsupported address %s\n", wine_dbgstr_longlong(addr));
         SetLastError(ERROR_INVALID_PARAMETER);
@@ -318,7 +319,7 @@ BOOL WINAPI SymInitializeW(HANDLE hProcess, PCWSTR UserSearchPath, BOOL fInvadeP
     if (!pcs) return FALSE;
 
     pcs->handle = hProcess;
-    pcs->is_64bit = (sizeof(void *) == 8 || wow64) && !child_wow64;
+    pcs->is_64bit = (wine_is_64bit() || wow64) && !child_wow64;
 
     if (UserSearchPath)
     {

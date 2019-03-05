@@ -33,6 +33,7 @@
 #include "msipriv.h"
 #include "wincrypt.h"
 #include "wine/unicode.h"
+#include "wine/library.h"
 #include "winver.h"
 #include "winuser.h"
 #include "sddl.h"
@@ -452,7 +453,7 @@ UINT MSIREG_OpenUninstallKey(const WCHAR *product, enum platform platform, HKEY 
 
     TRACE("%s\n", debugstr_w(product));
 
-    if (platform == PLATFORM_INTEL)
+    if (wine_is_64bit() && platform == PLATFORM_INTEL)
         access |= KEY_WOW64_32KEY;
     else
         access |= KEY_WOW64_64KEY;
@@ -470,7 +471,7 @@ UINT MSIREG_DeleteUninstallKey(const WCHAR *product, enum platform platform)
 
     TRACE("%s\n", debugstr_w(product));
 
-    if (platform == PLATFORM_INTEL)
+    if (wine_is_64bit() && platform == PLATFORM_INTEL)
         access |= KEY_WOW64_32KEY;
     else
         access |= KEY_WOW64_64KEY;

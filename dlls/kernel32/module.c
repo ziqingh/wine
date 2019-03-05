@@ -44,6 +44,7 @@
 #include "wine/asm.h"
 #include "wine/debug.h"
 #include "wine/unicode.h"
+#include "wine/library.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(module);
 
@@ -1316,7 +1317,7 @@ static BOOL init_module_iterator(MODULE_ITERATOR *iter, HANDLE process)
         return FALSE;
     }
 
-    if (sizeof(void *) == 8 && iter->wow64)
+    if (wine_is_64bit() && iter->wow64)
     {
         PEB_LDR_DATA32 *ldr_data32_ptr;
         DWORD ldr_data32, first_module;
@@ -1362,7 +1363,7 @@ static int module_iterator_next(MODULE_ITERATOR *iter)
     if (iter->current == iter->head)
         return 0;
 
-    if (sizeof(void *) == 8 && iter->wow64)
+    if (wine_is_64bit() && iter->wow64)
     {
         LIST_ENTRY32 *entry32 = (LIST_ENTRY32 *)iter->current;
 
@@ -1456,7 +1457,7 @@ BOOL WINAPI K32EnumProcessModules(HANDLE process, HMODULE *lphModule,
     {
         if (cb >= sizeof(HMODULE))
         {
-            if (sizeof(void *) == 8 && iter.wow64)
+            if (wine_is_64bit() && iter.wow64)
                 *lphModule++ = (HMODULE) (DWORD_PTR)iter.ldr_module32.BaseAddress;
             else
                 *lphModule++ = iter.ldr_module.BaseAddress;
@@ -1501,7 +1502,7 @@ DWORD WINAPI K32GetModuleBaseNameW(HANDLE process, HMODULE module,
     if (!IsWow64Process(process, &wow64))
         return 0;
 
-    if (sizeof(void *) == 8 && wow64)
+    if (wine_is_64bit() && wow64)
     {
         LDR_MODULE32 ldr_module32;
 
@@ -1573,7 +1574,7 @@ DWORD WINAPI K32GetModuleFileNameExW(HANDLE process, HMODULE module,
     if (!IsWow64Process(process, &wow64))
         return 0;
 
-    if (sizeof(void *) == 8 && wow64)
+    if (wine_is_64bit() && wow64)
     {
         LDR_MODULE32 ldr_module32;
 
@@ -1671,7 +1672,7 @@ BOOL WINAPI K32GetModuleInformation(HANDLE process, HMODULE module,
     if (!IsWow64Process(process, &wow64))
         return FALSE;
 
-    if (sizeof(void *) == 8 && wow64)
+    if (wine_is_64bit() && wow64)
     {
         LDR_MODULE32 ldr_module32;
 

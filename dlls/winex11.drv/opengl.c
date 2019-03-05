@@ -285,8 +285,6 @@ static CRITICAL_SECTION_DEBUG critsect_debug =
 };
 static CRITICAL_SECTION context_section = { &critsect_debug, -1, 0, 0, 0, 0 };
 
-static const BOOL is_win64 = sizeof(void *) > sizeof(int);
-
 static struct opengl_funcs opengl_funcs;
 
 #define USE_GL_FUNC(name) #name,
@@ -468,7 +466,7 @@ static BOOL X11DRV_WineGL_InitOpenglInfo(void)
     if(pglXMakeCurrent(gdi_display, win, ctx) == 0)
     {
         ERR_(winediag)( "Unable to activate OpenGL context, most likely your %s OpenGL drivers haven't been "
-                        "installed correctly\n", is_win64 ? "64-bit" : "32-bit" );
+                        "installed correctly\n", wine_is_64bit() ? "64-bit" : "32-bit" );
         goto done;
     }
     gl_renderer = (const char *)opengl_funcs.gl.p_glGetString(GL_RENDERER);
@@ -505,7 +503,7 @@ static BOOL X11DRV_WineGL_InitOpenglInfo(void)
         if(!getsockname(fd, (struct sockaddr *)&uaddr, &uaddrlen) && uaddr.sun_family == AF_UNIX)
             ERR_(winediag)("Direct rendering is disabled, most likely your %s OpenGL drivers "
                            "haven't been installed correctly (using GL renderer %s, version %s).\n",
-                           is_win64 ? "64-bit" : "32-bit", debugstr_a(gl_renderer),
+                           wine_is_64bit() ? "64-bit" : "32-bit", debugstr_a(gl_renderer),
                            debugstr_a(gl_version));
     }
     else
@@ -522,7 +520,7 @@ static BOOL X11DRV_WineGL_InitOpenglInfo(void)
         if(!strcmp(gl_renderer, "Software Rasterizer") || !strcmp(gl_renderer, "Mesa X11"))
             ERR_(winediag)("The Mesa OpenGL driver is using software rendering, most likely your %s OpenGL "
                            "drivers haven't been installed correctly (using GL renderer %s, version %s).\n",
-                           is_win64 ? "64-bit" : "32-bit", debugstr_a(gl_renderer),
+                           wine_is_64bit() ? "64-bit" : "32-bit", debugstr_a(gl_renderer),
                            debugstr_a(gl_version));
     }
     ret = TRUE;

@@ -40,6 +40,7 @@
 #include "wine/debug.h"
 #include "wine/unicode.h"
 #include "wine/exception.h"
+#include "wine/library.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(msi);
 
@@ -616,7 +617,7 @@ static DWORD custom_start_server(MSIPACKAGE *package, DWORD arch)
     if (!IsWow64Process(GetCurrentProcess(), &wow64))
         wow64 = FALSE;
 
-    if ((sizeof(void *) == 8 || wow64) && arch == SCS_32BIT_BINARY)
+    if ((wine_is_64bit() || wow64) && arch == SCS_32BIT_BINARY)
         GetSystemWow64DirectoryW(path, MAX_PATH - ARRAY_SIZE(msiexecW));
     else
         GetSystemDirectoryW(path, MAX_PATH - ARRAY_SIZE(msiexecW));
@@ -768,7 +769,7 @@ static msi_custom_action_info *do_msidbCustomActionTypeDll(
 
     ret = GetBinaryTypeW(source, &info->arch);
     if (!ret)
-        info->arch = (sizeof(void *) == 8 ? SCS_64BIT_BINARY : SCS_32BIT_BINARY);
+        info->arch = (wine_is_64bit() ? SCS_64BIT_BINARY : SCS_32BIT_BINARY);
 
     custom_start_server(package, info->arch);
 

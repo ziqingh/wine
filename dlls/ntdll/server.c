@@ -1476,7 +1476,6 @@ void server_init_process_done(void)
 size_t server_init_thread( void *entry_point, BOOL *suspend )
 {
     static const char *cpu_names[] = { "x86", "x86_64", "PowerPC", "ARM", "ARM64" };
-    static const BOOL is_win64 = (sizeof(void *) > sizeof(int));
     const char *arch = getenv( "WINEARCH" );
     int ret;
     int reply_pipe[2];
@@ -1518,7 +1517,7 @@ size_t server_init_thread( void *entry_point, BOOL *suspend )
     }
     SERVER_END_REQ;
 
-    is_wow64 = !is_win64 && (server_cpus & ((1 << CPU_x86_64) | (1 << CPU_ARM64))) != 0;
+    is_wow64 = !wine_is_64bit() && (server_cpus & ((1 << CPU_x86_64) | (1 << CPU_ARM64))) != 0;
     ntdll_get_thread_data()->wow64_redir = is_wow64;
 
     switch (ret)
@@ -1526,10 +1525,10 @@ size_t server_init_thread( void *entry_point, BOOL *suspend )
     case STATUS_SUCCESS:
         if (arch)
         {
-            if (!strcmp( arch, "win32" ) && (is_win64 || is_wow64))
+            if (!strcmp( arch, "win32" ) && (wine_is_64bit() || is_wow64))
                 fatal_error( "WINEARCH set to win32 but '%s' is a 64-bit installation.\n",
                              wine_get_config_dir() );
-            if (!strcmp( arch, "win64" ) && !is_win64 && !is_wow64)
+            if (!strcmp( arch, "win64" ) && !wine_is_64bit() && !is_wow64)
                 fatal_error( "WINEARCH set to win64 but '%s' is a 32-bit installation.\n",
                              wine_get_config_dir() );
         }

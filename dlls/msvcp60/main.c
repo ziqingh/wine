@@ -24,6 +24,7 @@
 #include "windef.h"
 #include "winbase.h"
 #include "wine/debug.h"
+#include "wine/library.h"
 
 WINE_DEFAULT_DEBUG_CHANNEL(msvcp);
 
@@ -66,7 +67,7 @@ static void init_cxx_funcs(void)
 {
     HMODULE hmod = GetModuleHandleA("msvcrt.dll");
 
-    if (sizeof(void *) > sizeof(int))  /* 64-bit has different names */
+    if (wine_is_64bit())  /* 64-bit has different names */
     {
         MSVCRT_operator_new = (void*)GetProcAddress(hmod, "??2@YAPEAX_K@Z");
         MSVCRT_operator_delete = (void*)GetProcAddress(hmod, "??3@YAXPEAX@Z");
