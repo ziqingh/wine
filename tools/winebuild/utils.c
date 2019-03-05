@@ -1086,6 +1086,16 @@ const char *asm_name( const char *sym )
     }
 }
 
+/* return the 32-bit-to-64-bit thunk name for a C function */
+const char *thunk32_name( const char *func )
+{
+    static char *thunk_prefix = "wine";
+    static char *buffer;
+    free( buffer );
+    buffer = strmake( "%s_thunk_%s", thunk_prefix, func );
+    return buffer;
+}
+
 /* return an assembly function declaration for a C function name */
 const char *func_declaration( const char *func )
 {

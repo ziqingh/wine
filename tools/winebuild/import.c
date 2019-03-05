@@ -1261,7 +1261,6 @@ static void output_external_link_imports( DLLSPEC *spec )
 void output_stubs( DLLSPEC *spec )
 {
     const char *name, *exp_name;
-    char *thunk32_name;
     int i;
 
     if (!has_stubs( spec )) return;
@@ -1374,11 +1373,10 @@ void output_stubs( DLLSPEC *spec )
             if (odp->type != TYPE_STUB) continue;
 
             name = get_stub_name( odp, spec );
-            thunk32_name = strmake( "%s_%s", name, "thunk32" );
             exp_name = odp->name ? odp->name : odp->export_name;
             output( "\t.align %d\n", get_alignment(4) );
-            output( "\t%s\n", func_declaration(thunk32_name) ) ;
-            output( "%s:\n", asm_name(thunk32_name) );
+            output( "\t%s\n", func_declaration(thunk32_name(name)) ) ;
+            output( "%s:\n", asm_name(thunk32_name(name)) );
             output_cfi( ".cfi_startproc" );
             output("\t.code32\n");
 
@@ -1418,11 +1416,10 @@ void output_stubs( DLLSPEC *spec )
                     output( "\tmovl $%d,4(%%esp)\n", odp->ordinal );
                 output( "\tmovl $.L__wine_spec_file_name,(%%esp)\n" );
             }
-            output( "\tcall %s_%s\n", asm_name("wine_thunk32to64"), "__wine_spec_unimplemented_stub" );
+            output( "\tcall %s\n", asm_name(thunk32_name("__wine_spec_unimplemented_stub")));
             output("\t.code64\n");
             output_cfi( ".cfi_endproc" );
-            output_function_size( thunk32_name );
-            free( thunk32_name );
+            output_function_size( thunk32_name(name) );
         }
     }
 

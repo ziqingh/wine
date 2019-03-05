@@ -438,7 +438,7 @@ void output_exports( DLLSPEC *spec )
             else
             {
                 if (target_cpu == CPU_x86_32on64)
-                    output( "\t%s %s_%s\n", func_ptr, asm_name("wine_thunk32to64"), odp->link_name );
+                    output( "\t%s %s\n", func_ptr, asm_name(thunk32_name(odp->link_name)) );
                 else
                     output( "\t%s %s\n", func_ptr, asm_name( get_link_name( odp )));
             }
