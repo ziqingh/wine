@@ -710,6 +710,25 @@ static void output_import_thunk( const char *name, const char *table, int pos, i
     output_function_size( name );
 }
 
+static output_32bit_thunk( const char *name )
+{
+    if (target_cpu == CPU_x86_32on64)
+    {
+        output( "\n\t.align %d\n", get_alignment(4) );
+        output( "\t.quad %s - (%s  + 7)\n", asm_name(name), asm_name(thunk32_name(name)) );
+        output( "\t.quad 0x77496e4554683332\n" );    /* magic number */
+        output( "\t%s\n", func_declaration(thunk32_name(name)) );
+        output( "%s\n", asm_globl(thunk32_name(name)) );
+        output_cfi( ".cfi_startproc" );
+        output( "\t.code32\n" );
+        output( "\t.byte 0x8b, 0xff\n" );    /* movl %edi, %edi; hotpatch prolog */
+        output( "\t.int 3\n" );
+        output( "\t.code64\n" );
+        output_cfi( ".cfi_endproc" );
+        output_function_size( thunk32_name(name) );
+    }
+}
+
 /* check if we need an import directory */
 int has_imports(void)
 {
@@ -824,6 +843,7 @@ static void output_immediate_import_thunks(void)
             struct import_func *func = &import->imports[j];
             output_import_thunk( func->name ? func->name : func->export_name,
                                  ".L__wine_spec_import_data_ptrs", pos, import->nb_imports );
+            output_32bit_thunk( func->name ? func->name : func->export_name );
         }
         pos += get_ptr_size();
         if (target_cpu == CPU_x86_32on64) pos += (import->nb_imports + 1) * get_ptr_size();
@@ -1210,6 +1230,7 @@ static void output_delayed_import_thunks( const DLLSPEC *spec )
             struct import_func *func = &import->imports[j];
             output_import_thunk( func->name ? func->name : func->export_name,
                                  ".L__wine_delay_IAT", pos, import->nb_imports );
+            output_32bit_thunk( func->name ? func->name : func->export_name );
         }
         if (target_cpu == CPU_x86_32on64) pos += (import->nb_imports + 2) * get_ptr_size();
     }
