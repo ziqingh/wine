@@ -1222,7 +1222,7 @@ __ASM_GLOBAL_FUNC( start_process_wrapper,
 
 #elif defined(__i386_on_x86_64__)
 extern DWORD CDECL call_process_entry32( PEB *peb, LPTHREAD_START_ROUTINE entry );
-__ASM_GLOBAL_FUNC32( call_process_entry32,
+__ASM_GLOBAL_FUNC32( __ASM_THUNK_NAME(call_process_entry32),
                      "pushl %ebp\n\t"
                      __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
                      __ASM_CFI(".cfi_rel_offset %ebp,0\n\t")
