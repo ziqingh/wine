@@ -134,40 +134,7 @@ __declspec(naked) int wine_call_on_stack( int (*func)(void *), void *arg, void *
   __asm pop ebp;
   __asm ret;
 }
-#elif defined(__i386_on_x86_64__) && defined(__GNUC__)
-extern int CDECL wine_call_on_stack32( int (*func)(void *), void *arg, void *stack )
-__ASM_GLOBAL_FUNC32( wine_call_on_stack32,
-                    "pushl %ebp\n\t"
-                    __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
-                    __ASM_CFI(".cfi_rel_offset %ebp,0\n\t")
-                    "pushl %esi\n\t"
-                    __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
-                    __ASM_CFI(".cfi_rel_offset %esi,0\n\t")
-                    "movl %esp,%esi\n\t"
-                    __ASM_CFI(".cfi_def_cfa_register %esi\n\t")
-                    "movl 12(%esp),%ecx\n\t"  /* func */
-                    "movl 16(%esp),%edx\n\t"  /* arg */
-                    "movl 20(%esp),%eax\n\t"  /* stack */
-                    "andl $~15,%eax\n\t"
-                    "subl $12,%eax\n\t"
-                    "movl %eax,%esp\n\t"
-                    "pushl %edx\n\t"
-                    "xorl %ebp,%ebp\n\t"
-                    "call *%ecx\n\t"
-                    "movl %esi,%esp\n\t"
-                    "popl %esi\n\t"
-                    __ASM_CFI(".cfi_adjust_cfa_offset -4\n\t")
-                    __ASM_CFI(".cfi_same_value %esi\n\t")
-                    "popl %ebp\n\t"
-                    __ASM_CFI(".cfi_def_cfa %esp,4\n\t")
-                    __ASM_CFI(".cfi_same_value %ebp\n\t")
-                    "ret" )
-int wine_call_on_stack( int (*func)(void *), void *arg, void *stack )
-{
-    int (* pwine_call_on_stack)( int (*func)(void *), void *arg, void *stack ) = wine_call_on_stack32;
-    pwine_call_on_stack(func, arg, stack);
-}
-#elif defined(__x86_64__) && defined(__GNUC__)
+#elif (defined(__x86_64__) || defined(__i386_on_x86_64__)) && defined(__GNUC__)
 __ASM_GLOBAL_FUNC( wine_call_on_stack,
                    "pushq %rbp\n\t"
                    __ASM_CFI(".cfi_adjust_cfa_offset 8\n\t")
