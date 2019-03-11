@@ -6356,6 +6356,60 @@ __ASM_GLOBAL_FUNC( call_method,
 __ASM_GLOBAL_FUNC( call_double_method,
                    "jmp " __ASM_NAME("call_method") )
 
+#elif defined(__i386_on_x86_64__)
+
+extern DWORD_PTR CDECL call_method32( void *func, int nb_args, const DWORD_PTR *args );
+extern double call_double_method( void *func, int nb_args, const DWORD_PTR *args );
+/*
+ * TODO: manually write thunking code for performance optimization
+ * */
+__ASM_GLOBAL_FUNC32( __ASM_THUNK_NAME(call_method32),
+                     "pushq %rbp\n\t"
+                     __ASM_CFI(".cfi_adjust_cfa_offset 8\n\t")
+                     __ASM_CFI(".cfi_rel_offset %rbp,0\n\t")
+                     "movq %rsp,%rbp\n\t"
+                     __ASM_CFI(".cfi_def_cfa_register %rbp\n\t")
+                     "pushq %rsi\n\t"
+                     __ASM_CFI(".cfi_rel_offset %rsi,-8\n\t")
+                     "pushq %rdi\n\t"
+                     __ASM_CFI(".cfi_rel_offset %rdi,-16\n\t")
+                     "movq %rcx,%rax\n\t"
+                     "movq $4,%rcx\n\t"
+                     "cmp %rcx,%rdx\n\t"
+                     "cmovgq %rdx,%rcx\n\t"
+                     "leaq 0(,%rcx,8),%rdx\n\t"
+                     "subq %rdx,%rsp\n\t"
+                     "andq $~15,%rsp\n\t"
+                     "movq %rsp,%rdi\n\t"
+                     "movq %r8,%rsi\n\t"
+                     "rep; movsq\n\t"
+                     "movq 0(%rsp),%rcx\n\t"
+                     "movq 8(%rsp),%rdx\n\t"
+                     "movq 16(%rsp),%r8\n\t"
+                     "movq 24(%rsp),%r9\n\t"
+                     "movq 0(%rsp),%xmm0\n\t"
+                     "movq 8(%rsp),%xmm1\n\t"
+                     "movq 16(%rsp),%xmm2\n\t"
+                     "movq 24(%rsp),%xmm3\n\t"
+                     "callq *%rax\n\t"
+                     "leaq -16(%rbp),%rsp\n\t"
+                     "popq %rdi\n\t"
+                     __ASM_CFI(".cfi_same_value %rdi\n\t")
+                     "popq %rsi\n\t"
+                     __ASM_CFI(".cfi_same_value %rsi\n\t")
+                     __ASM_CFI(".cfi_def_cfa_register %rsp\n\t")
+                     "popq %rbp\n\t"
+                     __ASM_CFI(".cfi_adjust_cfa_offset -8\n\t")
+                     __ASM_CFI(".cfi_same_value %rbp\n\t")
+                     "ret")
+__ASM_GLOBAL_FUNC( call_double_method,
+                   "jmp " __ASM_NAME("call_method") )
+inline DWORD_PTR call_method( void *func, int nb_args, const DWORD_PTR *args )
+{
+    DWORD_PTR (CDECL *pcall_method)( void *func, int nb_args, const DWORD_PTR *args ) = call_method32;
+    pcall_method( func, nb_args, args );
+}
+
 #elif defined(__x86_64__)
 
 extern DWORD_PTR CDECL call_method( void *func, int nb_args, const DWORD_PTR *args );
