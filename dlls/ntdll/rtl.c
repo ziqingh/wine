@@ -632,6 +632,16 @@ __ASM_GLOBAL_FUNC(NTDLL_RtlUlongByteSwap,
                   "movl %ecx,%eax\n\t"
                   "bswap %eax\n\t"
                   "ret")
+#elif defined(__i386_on_x86_64__)
+__ASM_GLOBAL_FUNC32(__ASM_THUNK_NAME(NTDLL_RtlUlongByteSwap),
+                    "movl %ecx,%eax\n\t"
+                    "bswap %eax\n\t"
+                    "ret")
+ULONG NTDLL_RtlUlongByteSwap(void)
+{
+    ERR("Should never be reached. Only the 32-bit version should be called");
+    abort();
+}
 #endif
 
 /*************************************************************************
@@ -647,6 +657,16 @@ __ASM_GLOBAL_FUNC(NTDLL_RtlUshortByteSwap,
                   "movb %ch,%al\n\t"
                   "movb %cl,%ah\n\t"
                   "ret")
+#elif defined(__i386_on_x86_64__)
+__ASM_GLOBAL_FUNC32(__ASM_THUNK_NAME(NTDLL_RtlUshortByteSwap),
+                    "movb %ch,%al\n\t"
+                    "movb %cl,%ah\n\t"
+                    "ret")
+USHORT NTDLL_RtlUshortByteSwap(void)
+{
+    ERR("Should never be reached. Only the 32-bit version should be called");
+    abort();
+}
 #endif
 
 
