@@ -1796,6 +1796,7 @@ void write_header(const statement_list_t *stmts)
 
   fprintf(header, "#ifndef __%s__\n", header_token);
   fprintf(header, "#define __%s__\n\n", header_token);
+  fprintf(header, "#include \"wine/winheader_enter.h\"\n\n");
 
   fprintf(header, "/* Forward declarations */\n\n");
   write_forward_decls(header, stmts);
@@ -1818,6 +1819,7 @@ void write_header(const statement_list_t *stmts)
   fprintf(header, "\n");
 
   end_cplusplus_guard(header);
+  fprintf(header, "#include \"wine/winheader_exit.h\"\n\n");
   fprintf(header, "#endif /* __%s__ */\n", header_token);
 
   fclose(header);

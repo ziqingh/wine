@@ -19,6 +19,8 @@
 #ifndef __MSHTMDID_H__
 #define __MSHTMDID_H__
 
+#include "wine/winheader_enter.h"
+
 #define DISPID_NORMAL_FIRST     1000
 #define DISPID_IE8_NORMAL_FIRST (DISPID_NORMAL_FIRST+150)
 
@@ -4710,5 +4712,7 @@
 /* IDocumentSelector */
 #define DISPID_IDOCUMENTSELECTOR_QUERYSELECTOR     DISPID_OMDOCUMENT+105
 #define DISPID_IDOCUMENTSELECTOR_QUERYSELECTORALL  DISPID_OMDOCUMENT+106
+
+#include "wine/winheader_exit.h"
 
 #endif /* __MSHTMDID_H__ */

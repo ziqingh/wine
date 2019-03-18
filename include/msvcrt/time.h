@@ -20,6 +20,8 @@
 #ifndef __WINE_TIME_H
 #define __WINE_TIME_H
 
+#include "wine/winheader_enter.h"
+
 #include <crtdefs.h>
 
 #include <pshpack8.h>
@@ -148,5 +150,7 @@ static inline wchar_t* _wctime(const time_t *t) { return _wctime64(t); }
 #endif
 
 #include <poppack.h>
+
+#include "wine/winheader_exit.h"
 
 #endif /* __WINE_TIME_H */

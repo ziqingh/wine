@@ -20,6 +20,8 @@
 #ifndef __WINE_D3D9CAPS_H
 #define __WINE_D3D9CAPS_H
 
+#include "wine/winheader_enter.h"
+
 #ifdef __i386__
 #include <pshpack4.h>
 #endif
@@ -413,5 +415,7 @@ typedef struct _D3DCAPS9 {
 #ifdef __i386__
 #include <poppack.h>
 #endif
+
+#include "wine/winheader_exit.h"
 
 #endif

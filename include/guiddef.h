@@ -19,6 +19,8 @@
 #ifndef GUID_DEFINED
 #define GUID_DEFINED
 
+#include "wine/winheader_enter.h"
+
 #ifdef __WIDL__
 typedef struct
 {
@@ -156,5 +158,7 @@ inline bool operator!=(const GUID& guidOne, const GUID& guidOther)
 #endif
 
 extern const IID GUID_NULL;
+
+#include "wine/winheader_exit.h"
 
 #endif /* _GUIDDEF_H_ */

@@ -21,6 +21,8 @@
 #ifndef __WINE_CRTDEFS_H
 #define __WINE_CRTDEFS_H
 
+#include "wine/winheader_enter.h"
+
 #ifndef __WINE_USE_MSVCRT
 #define __WINE_USE_MSVCRT
 #endif
@@ -275,5 +277,7 @@ typedef struct threadlocaleinfostruct {
 } threadlocinfo;
 #define _THREADLOCALEINFO
 #endif
+
+#include "wine/winheader_exit.h"
 
 #endif /* __WINE_CRTDEFS_H */

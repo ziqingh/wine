@@ -19,6 +19,8 @@
 #ifndef __WINE_WINBASE_H
 #define __WINE_WINBASE_H
 
+#include "wine/winheader_enter.h"
+
 #include <winerror.h>
 
 #ifdef __cplusplus
@@ -3197,5 +3199,7 @@ BOOL WINAPI DllMain( HINSTANCE hinst, DWORD reason, LPVOID reserved ) DECLSPEC_H
 #ifdef __cplusplus
 }
 #endif
+
+#include "wine/winheader_exit.h"
 
 #endif  /* __WINE_WINBASE_H */

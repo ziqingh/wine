@@ -22,6 +22,8 @@
 #ifndef __WINE_BASETSD_H
 #define __WINE_BASETSD_H
 
+#include "wine/winheader_enter.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* defined(__cplusplus) */
@@ -316,5 +318,7 @@ typedef ULONG_PTR KAFFINITY, *PKAFFINITY;
 #ifdef __cplusplus
 } /* extern "C" */
 #endif /* defined(__cplusplus) */
+
+#include "wine/winheader_exit.h"
 
 #endif /* !defined(__WINE_BASETSD_H) */

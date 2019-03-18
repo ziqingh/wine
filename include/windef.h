@@ -21,6 +21,8 @@
 #ifndef _WINDEF_
 #define _WINDEF_
 
+#include "wine/winheader_enter.h"
+
 #ifndef WINVER
 #define WINVER 0x0500
 #endif
@@ -507,5 +509,7 @@ asm(".text\n\t"                                                                 
 #ifdef __cplusplus
 }
 #endif
+
+#include "wine/winheader_exit.h"
 
 #endif /* _WINDEF_ */

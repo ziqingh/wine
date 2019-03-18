@@ -8,6 +8,8 @@
 #ifndef __WINE_STRING_H
 #define __WINE_STRING_H
 
+#include "wine/winheader_enter.h"
+
 #include <crtdefs.h>
 
 #ifndef _NLSCMP_DEFINED
@@ -153,5 +155,7 @@ static inline wchar_t* wcsnset(wchar_t* str, wchar_t c, size_t n) { return _wcsn
 static inline wchar_t* wcsrev(wchar_t* str) { return _wcsrev(str); }
 static inline wchar_t* wcsset(wchar_t* str, wchar_t c) { return _wcsset(str, c); }
 static inline wchar_t* wcsupr(wchar_t* str) { return _wcsupr(str); }
+
+#include "wine/winheader_exit.h"
 
 #endif /* __WINE_STRING_H */

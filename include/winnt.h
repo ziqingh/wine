@@ -21,6 +21,8 @@
 #ifndef _WINNT_
 #define _WINNT_
 
+#include "wine/winheader_enter.h"
+
 #include <basetsd.h>
 #include <guiddef.h>
 
@@ -6523,5 +6525,7 @@ typedef enum _PROCESS_MITIGATION_POLICY
 #ifdef __cplusplus
 }
 #endif
+
+#include "wine/winheader_exit.h"
 
 #endif  /* _WINNT_ */

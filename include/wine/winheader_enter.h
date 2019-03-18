@@ -1,5 +1,7 @@
 /*
- * Copyright (C) 2017 Alexandre Julliard
+ * Begin compilation controls for Windows headers
+ *
+ * Copyright 2019 Ken Thomases for CodeWeavers Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,26 +18,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
  */
 
-#ifndef _APISETLIBLOADER_
-#define _APISETLIBLOADER_
-
-#include "wine/winheader_enter.h"
-
-#ifdef __cplusplus
-extern "C" {
+#ifdef __i386_on_x86_64__
+#pragma clang default_addr_space(push, ptr32)
+#pragma clang storage_addr_space(push, ptr32)
 #endif
-
-typedef void *DLL_DIRECTORY_COOKIE, **PDLL_DIRECTORY_COOKIE;
-
-WINBASEAPI DLL_DIRECTORY_COOKIE WINAPI AddDllDirectory(const WCHAR *);
-WINBASEAPI BOOL WINAPI RemoveDllDirectory(DLL_DIRECTORY_COOKIE);
-WINBASEAPI BOOL WINAPI SetDefaultDllDirectories(DWORD);
-WINBASEAPI INT WINAPI FindStringOrdinal(DWORD, const WCHAR *, INT, const WCHAR *, INT, BOOL);
-
-#ifdef __cplusplus
-}
-#endif
-
-#include "wine/winheader_exit.h"
-
-#endif  /* _APISETLIBLOADER_ */

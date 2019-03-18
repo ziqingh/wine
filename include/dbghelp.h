@@ -21,6 +21,8 @@
 #ifndef __WINE_DBGHELP_H
 #define __WINE_DBGHELP_H
 
+#include "wine/winheader_enter.h"
+
 /* A set of documentation macros (see also imagehlp.h) */
 #ifndef __deref_out
 # define __deref_out
@@ -1572,5 +1574,7 @@ BOOL    WINAPI SymUnloadModule(HANDLE, DWORD);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif /* defined(__cplusplus) */
+
+#include "wine/winheader_exit.h"
 
 #endif  /* __WINE_DBGHELP_H */
