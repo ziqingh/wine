@@ -2857,7 +2857,8 @@ static inline LPWSTR WINAPI lstrcpyW( LPWSTR dst, LPCWSTR src )
 
 static inline LPSTR WINAPI lstrcpyA( LPSTR dst, LPCSTR src )
 {
-    return strcpy( dst, src );
+    strcpy( dst, src );
+    return dst;
 }
 
 static inline LPWSTR WINAPI lstrcatW( LPWSTR dst, LPCWSTR src )
@@ -2870,7 +2871,8 @@ static inline LPWSTR WINAPI lstrcatW( LPWSTR dst, LPCWSTR src )
 
 static inline LPSTR WINAPI lstrcatA( LPSTR dst, LPCSTR src )
 {
-    return strcat( dst, src );
+    strcat( dst, src );
+    return dst;
 }
 
 /* strncpy doesn't do what you think, don't use it */
