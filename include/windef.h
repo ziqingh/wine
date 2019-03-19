@@ -480,13 +480,13 @@ typedef enum DPI_AWARENESS
 #define __ASM_THUNK_MAKE_NAME(thunk_prefix,name)      __ASM_THUNK_MAKE_NAME__(thunk_prefix, name)
 #define __ASM_THUNK_NAME(name)                        __ASM_THUNK_MAKE_NAME(__ASM_THUNK_PREFIX, name)
 #define __ASM_THUNK_SYMBOL(name_str)                  __ASM_NAME(__ASM_STR(__ASM_THUNK_PREFIX) "_thunk_" name_str)
-#define __ASM_THUNK_MAGIC                             ".quad 0x77496e4554683332\n\t"
+#define __ASM_THUNK_MAGIC                             0x77496e4554683332
 
 #define __ASM_THUNK_DEFINE(name,suffix,code)                                                 \
 asm(".text\n\t"                                                                              \
     __ASM_THUNK_ALIGN                                                                        \
     ".quad " __ASM_NAME(#name suffix) " - (" __ASM_THUNK_SYMBOL(#name suffix) " + 7)\n\t"    \
-    __ASM_THUNK_MAGIC                                                                        \
+    ".quad " __ASM_STR(__ASM_THUNK_MAGIC) "\n\t"                                                                \
     ".globl " __ASM_THUNK_SYMBOL(#name suffix) "\n\t"                                        \
     ".type  " __ASM_THUNK_SYMBOL(#name suffix) ",@function\n"                                \
     __ASM_THUNK_SYMBOL(#name suffix) ":\n\t"                                                 \
