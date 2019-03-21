@@ -3763,7 +3763,6 @@ static BOOL CALLBACK enum_mon_callback( HMONITOR monitor, HDC hdc, LPRECT rect, 
     struct enum_mon_data *data = (struct enum_mon_data *)lp;
 #ifdef __i386_on_x86_64__
     BOOL (CDECL *penum_mon_callback_wrapper)( HMONITOR monitor, LPRECT rect, struct enum_mon_data *data ) = enum_mon_callback_wrapper;
-    ULONGLONG *thunk_magic = (ULONGLONG *)(data->proc) - 1;
 #endif
     RECT monrect = map_dpi_rect( *rect, get_monitor_dpi( monitor ), get_thread_dpi() );
 
@@ -3772,7 +3771,7 @@ static BOOL CALLBACK enum_mon_callback( HMONITOR monitor, HDC hdc, LPRECT rect, 
 #ifdef __i386__
     return enum_mon_callback_wrapper( monitor, &monrect, data );
 #elif defined(__i386_on_x86_64__)
-    if (*thunk_magic == __ASM_THUNK_MAGIC)
+    if (wine_is_thunk32to64(data->proc))
         return data->proc( monitor, data->hdc, &monrect, data->lparam );
     else
         return penum_mon_callback_wrapper( monitor, &monrect, data );

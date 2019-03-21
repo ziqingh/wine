@@ -498,6 +498,14 @@ asm(".text\n\t"                                                                 
 #define __ASM_STDCALL_FUNC32(name,args,code)   __ASM_STDCALL_FUNC(name,args,".code32\n\t" code "\n\t.code64\n\t")
 #define __ASM_GLOBAL_FUNC32(name,code)         __ASM_GLOBAL_FUNC(name,".code32\n\t" code "\n\t.code64\n\t")
 
+static inline BOOL wine_is_thunk32to64(void *func)
+{
+    /* Function address must be an odd multiple of 16 bytes; function must begin with
+       hotpatchable prolog; function must be preceded by magic number. */
+    ULONGLONG *thunk_magic = (ULONGLONG *)func - 1;
+    return (((uintptr_t)func & 0x1f) == 0x10 && *(WORD*)func == 0xff8b && *thunk_magic == __ASM_THUNK_MAGIC);
+}
+
 #endif /* __i386_on_x86_64__ */
 
 #ifdef __cplusplus
