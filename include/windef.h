@@ -468,12 +468,6 @@ typedef enum DPI_AWARENESS
 
 #define __ASM_EXTRA_DIST "16"
 
-#ifdef __APPLE__
-#define __ASM_THUNK_ALIGN ".align 5\n\t"
-#else
-#define __ASM_THUNK_ALIGN ".align 32\n\t"
-#endif
-
 #define __ASM_STR__(name)    #name
 #define __ASM_STR(name)      __ASM_STR__(name)
 
@@ -486,9 +480,9 @@ typedef enum DPI_AWARENESS
 
 #define __ASM_THUNK_DEFINE(name,suffix,code)                                                 \
 asm(".text\n\t"                                                                              \
-    __ASM_THUNK_ALIGN                                                                        \
+    ".balign 32\n\t"                                                                         \
     ".quad " __ASM_NAME(#name suffix) " - (" __ASM_THUNK_SYMBOL(#name suffix) " + 7)\n\t"    \
-    ".quad " __ASM_STR(__ASM_THUNK_MAGIC) "\n\t"                                                                \
+    ".quad " __ASM_STR(__ASM_THUNK_MAGIC) "\n\t"                                             \
     ".globl " __ASM_THUNK_SYMBOL(#name suffix) "\n\t"                                        \
     ".type  " __ASM_THUNK_SYMBOL(#name suffix) ",@function\n"                                \
     __ASM_THUNK_SYMBOL(#name suffix) ":\n\t"                                                 \
