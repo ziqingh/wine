@@ -325,12 +325,12 @@ static inline BOOL call_dll_entry_point( DLLENTRYPROC proc, void *module, UINT r
 {
     if (wine_is_thunk32to64( proc ))
     {
-        call_dll_entry_point_impl( __ASM_THUNK_TARGET(proc), module, reason, reserved );
+        return call_dll_entry_point_impl( __ASM_THUNK_TARGET(proc), module, reason, reserved );
     }
     else
     {
         BOOL (CDECL *pcall_dll_entry_point_impl)( DLLENTRYPROC proc, void *module, UINT reason, void *reserved ) = call_dll_entry_point_impl;
-        pcall_dll_entry_point_impl( proc, module, reason, reserved );
+        return pcall_dll_entry_point_impl( proc, module, reason, reserved );
     }
 }
 #else

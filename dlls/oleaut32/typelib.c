@@ -6441,12 +6441,12 @@ static inline LONGLONG call_method( void *func, int nb_args, const DWORD *args, 
 {
     if (wine_is_thunk32to64(func))
     {
-        call_method_impl( __ASM_THUNK_TARGET(func), nb_args, args, stack_offset );
+        return call_method_impl( __ASM_THUNK_TARGET(func), nb_args, args, stack_offset );
     }
     else
     {
         LONGLONG (CDECL *pcall_method_impl)( void *func, int nb_args, const DWORD *args, int *stack_offset ) = call_method_impl;
-        pcall_method_impl( func, nb_args, args, stack_offset );
+        return pcall_method_impl( func, nb_args, args, stack_offset );
     }
 }
 

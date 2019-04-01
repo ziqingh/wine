@@ -288,13 +288,13 @@ static inline LRESULT WINPROC_wrapper( WNDPROC proc, HWND hwnd, UINT msg, WPARAM
 {
     if (wine_is_thunk32to64( proc ))
     {
-        WINPROC_wrapper_impl( __ASM_THUNK_TARGET(proc), hwnd, msg, wParam, lParam );
+        return WINPROC_wrapper_impl( __ASM_THUNK_TARGET(proc), hwnd, msg, wParam, lParam );
     }
     else
     {
         LRESULT (CDECL *pWINPROC_wrapper_impl)( WNDPROC proc, HWND hwnd, UINT msg,
                                                 WPARAM wParam, LPARAM lParam ) = WINPROC_wrapper_impl;
-        pWINPROC_wrapper_impl( proc, hwnd, msg, wParam, lParam );
+        return pWINPROC_wrapper_impl( proc, hwnd, msg, wParam, lParam );
     }
 }
 #else

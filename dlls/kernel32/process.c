@@ -1259,12 +1259,12 @@ static inline DWORD call_process_entry( PEB *peb, LPTHREAD_START_ROUTINE entry )
 {
     if (wine_is_thunk32to64( entry ))
     {
-        call_process_entry_impl( peb, __ASM_THUNK_TARGET(entry) );
+        return call_process_entry_impl( peb, __ASM_THUNK_TARGET(entry) );
     }
     else
     {
         DWORD (CDECL *pcall_process_entry_impl)( PEB *peb, LPTHREAD_START_ROUTINE entry ) = call_process_entry_impl;
-        pcall_process_entry_impl( peb, entry );
+        return pcall_process_entry_impl( peb, entry );
     }
 }
 
