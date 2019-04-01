@@ -1220,8 +1220,26 @@ __ASM_GLOBAL_FUNC( start_process_wrapper,
                    "call " __ASM_NAME("start_process") )
 
 #elif defined(__i386_on_x86_64__)
-extern DWORD CDECL call_process_entry32( PEB *peb, LPTHREAD_START_ROUTINE entry );
-__ASM_GLOBAL_FUNC32( __ASM_THUNK_NAME(call_process_entry32),
+extern DWORD CDECL call_process_entry_impl( PEB *peb, LPTHREAD_START_ROUTINE entry );
+__ASM_GLOBAL_FUNC( call_process_entry_impl,
+                   "pushl %ebp\n\t"
+                   __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
+                   __ASM_CFI(".cfi_rel_offset %ebp,0\n\t")
+                   "movl %esp,%ebp\n\t"
+                   __ASM_CFI(".cfi_def_cfa_register %ebp\n\t")
+                   "pushl 4(%ebp)\n\t"  /* deliberately mis-align the stack by 8, Doom 3 needs this */
+                   "pushl 4(%ebp)\n\t"  /* Driller expects readable address at this offset */
+                   "pushl 4(%ebp)\n\t"
+                   "pushl "__ASM_EXTRA_DIST"+8(%ebp)\n\t"
+                   "subl $("__ASM_EXTRA_DIST"-4),%esp\n\t"
+                   "xorq %rax,%rax\n\t"
+                   "movl "__ASM_EXTRA_DIST"+12(%ebp),%eax\n\t"
+                   "callq %rax\n\t"
+                   "leave\n\t"
+                   __ASM_CFI(".cfi_def_cfa %esp,4\n\t")
+                   __ASM_CFI(".cfi_same_value %ebp\n\t")
+                   "retq" )
+__ASM_GLOBAL_FUNC32( __ASM_THUNK_NAME(call_process_entry_impl),
                      "pushl %ebp\n\t"
                      __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
                      __ASM_CFI(".cfi_rel_offset %ebp,0\n\t")
@@ -1239,8 +1257,15 @@ __ASM_GLOBAL_FUNC32( __ASM_THUNK_NAME(call_process_entry32),
 
 static inline DWORD call_process_entry( PEB *peb, LPTHREAD_START_ROUTINE entry )
 {
-    DWORD (CDECL *pcall_process_entry32)( PEB *peb, LPTHREAD_START_ROUTINE entry ) = call_process_entry32;
-    pcall_process_entry32(peb, entry);
+    if (wine_is_thunk32to64( entry ))
+    {
+        call_process_entry_impl( peb, __ASM_THUNK_TARGET(entry) );
+    }
+    else
+    {
+        DWORD (CDECL *pcall_process_entry_impl)( PEB *peb, LPTHREAD_START_ROUTINE entry ) = call_process_entry_impl;
+        pcall_process_entry_impl( peb, entry );
+    }
 }
 
 extern void WINAPI start_process( LPTHREAD_START_ROUTINE entry, PEB *peb ) DECLSPEC_HIDDEN;
