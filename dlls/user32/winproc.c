@@ -215,11 +215,44 @@ __ASM_GLOBAL_FUNC( WINPROC_wrapper,
 #elif defined(__i386_on_x86_64__)
 /* Some window procedures modify register they shouldn't, or are not
  * properly declared stdcall; so we need a small assembly wrapper to
- * call them.
- * TODO: manually write thunking code for performance optimization */
-extern LRESULT CDECL WINPROC_wrapper( WNDPROC proc, HWND hwnd, UINT msg,
-                                      WPARAM wParam, LPARAM lParam );
-__ASM_GLOBAL_FUNC32( __ASM_THUNK_NAME(WINPROC_wrapper),
+ * call them. */
+extern LRESULT CDECL WINPROC_wrapper_impl( WNDPROC proc, HWND hwnd, UINT msg,
+                                           WPARAM wParam, LPARAM lParam );
+__ASM_GLOBAL_FUNC( WINPROC_wrapper_impl,
+                   "pushl %ebp\n\t"
+                   __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
+                   __ASM_CFI(".cfi_rel_offset %ebp,0\n\t")
+                   "movl %esp,%ebp\n\t"
+                   __ASM_CFI(".cfi_def_cfa_register %ebp\n\t")
+                   "pushl %edi\n\t"
+                   __ASM_CFI(".cfi_rel_offset %edi,-4\n\t")
+                   "pushl %esi\n\t"
+                   __ASM_CFI(".cfi_rel_offset %esi,-8\n\t")
+                   "pushl %ebx\n\t"
+                   __ASM_CFI(".cfi_rel_offset %ebx,-12\n\t")
+                   /* TreePad X Enterprise assumes that edi is < 0x80000000 in WM_TIMER messages */
+                   "xorl %edi,%edi\n\t"
+                   "subl $12,%esp\n\t"
+                   "pushl "__ASM_EXTRA_DIST"+24(%ebp)\n\t"
+                   "pushl "__ASM_EXTRA_DIST"+20(%ebp)\n\t"
+                   "pushl "__ASM_EXTRA_DIST"+16(%ebp)\n\t"
+                   "pushl "__ASM_EXTRA_DIST"+12(%ebp)\n\t"
+                   "subl $("__ASM_EXTRA_DIST"-4),%esp\n\t"
+                   "xorq %rax,%rax\n\t"
+                   "movl "__ASM_EXTRA_DIST"+8(%ebp),%eax\n\t"
+                   "call *%rax\n\t"
+                   "leal -12(%ebp),%esp\n\t"
+                   "popl %ebx\n\t"
+                   __ASM_CFI(".cfi_same_value %ebx\n\t")
+                   "popl %esi\n\t"
+                   __ASM_CFI(".cfi_same_value %esi\n\t")
+                   "popl %edi\n\t"
+                   __ASM_CFI(".cfi_same_value %edi\n\t")
+                   "leave\n\t"
+                   __ASM_CFI(".cfi_def_cfa %esp,4\n\t")
+                   __ASM_CFI(".cfi_same_value %ebp\n\t")
+                   "retq" )
+__ASM_GLOBAL_FUNC32( __ASM_THUNK_NAME(WINPROC_wrapper_impl),
                      "pushl %ebp\n\t"
                      __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
                      __ASM_CFI(".cfi_rel_offset %ebp,0\n\t")
@@ -233,7 +266,7 @@ __ASM_GLOBAL_FUNC32( __ASM_THUNK_NAME(WINPROC_wrapper),
                      __ASM_CFI(".cfi_rel_offset %ebx,-12\n\t")
                      /* TreePad X Enterprise assumes that edi is < 0x80000000 in WM_TIMER messages */
                      "xorl %edi,%edi\n\t"
-                     "subl $12,%esp\n\t"
+                     "subl $("__ASM_EXTRA_DIST"-4),%esp\n\t"
                      "pushl 24(%ebp)\n\t"
                      "pushl 20(%ebp)\n\t"
                      "pushl 16(%ebp)\n\t"
@@ -251,12 +284,18 @@ __ASM_GLOBAL_FUNC32( __ASM_THUNK_NAME(WINPROC_wrapper),
                      __ASM_CFI(".cfi_def_cfa %esp,4\n\t")
                      __ASM_CFI(".cfi_same_value %ebp\n\t")
                      "ret" )
-LRESULT CDECL WINPROC_wrapper( WNDPROC proc, HWND hwnd, UINT msg,
-                               WPARAM wParam, LPARAM lParam )
+static inline LRESULT WINPROC_wrapper( WNDPROC proc, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam )
 {
-    LRESULT (CDECL *pWINPROC_wrapper)( WNDPROC proc, HWND hwnd, UINT msg,
-                                       WPARAM wParam, LPARAM lParam ) = WINPROC_wrapper;
-    pWINPROC_wrapper(proc, hwnd, msg, wParam, lParam);
+    if (wine_is_thunk32to64( proc ))
+    {
+        WINPROC_wrapper_impl( __ASM_THUNK_TARGET(proc), hwnd, msg, wParam, lParam );
+    }
+    else
+    {
+        LRESULT (CDECL *pWINPROC_wrapper_impl)( WNDPROC proc, HWND hwnd, UINT msg,
+                                                WPARAM wParam, LPARAM lParam ) = WINPROC_wrapper_impl;
+        pWINPROC_wrapper_impl( proc, hwnd, msg, wParam, lParam );
+    }
 }
 #else
 static inline LRESULT WINPROC_wrapper( WNDPROC proc, HWND hwnd, UINT msg,
