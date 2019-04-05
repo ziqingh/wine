@@ -477,7 +477,7 @@ typedef enum DPI_AWARENESS
 #define __ASM_THUNK_NAME(name)                        __ASM_THUNK_MAKE_NAME(__ASM_THUNK_PREFIX, name)
 #define __ASM_THUNK_SYMBOL(name_str)                  __ASM_NAME(__ASM_STR(__ASM_THUNK_PREFIX) "_thunk_" name_str)
 #define __ASM_THUNK_MAGIC                             0x77496e4554683332
-#define __ASM_THUNK_TARGET(thunk_addr)                ((void *)(*((ULONGLONG *)thunk_addr - 2) + 7))
+#define __ASM_THUNK_TARGET(thunk_addr)                ((void *)(*((ULONGLONG *)thunk_addr - 2) + thunk_addr +7))
 
 #define __ASM_THUNK_DEFINE(name,suffix,code)                                                 \
 asm(".text\n\t"                                                                              \
