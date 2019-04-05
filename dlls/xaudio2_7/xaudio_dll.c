@@ -75,6 +75,78 @@ __ASM_GLOBAL_FUNC( call_on_voice_processing_pass_start,
                    __ASM_CFI(".cfi_def_cfa %esp,4\n\t")
                    __ASM_CFI(".cfi_same_value %ebp\n\t")
                    "ret" )
+#elif XAUDIO2_VER != 0 && defined(__i386_on_x86_64__)
+#define IXAudio2VoiceCallback_OnVoiceProcessingPassStart(a, b) call_on_voice_processing_pass_start(a, b)
+extern void CDECL call_on_voice_processing_pass_start_impl(IXAudio2VoiceCallback *This, UINT32 BytesRequired);
+__ASM_GLOBAL_FUNC( call_on_voice_processing_pass_start_impl,
+                   "pushl %ebp\n\t"
+                   __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
+                   __ASM_CFI(".cfi_rel_offset %ebp,0\n\t")
+                   "movl %esp,%ebp\n\t"
+                   __ASM_CFI(".cfi_def_cfa_register %ebp\n\t")
+                   "pushl %esi\n\t"
+                   __ASM_CFI(".cfi_rel_offset %esi,-4\n\t")
+                   "pushl %edi\n\t"
+                   __ASM_CFI(".cfi_rel_offset %edi,-8\n\t")
+                   "subl $8,%esp\n\t"
+                   "pushl "__ASM_EXTRA_DIST"+12(%ebp)\n\t"     /* BytesRequired */
+                   "pushl "__ASM_EXTRA_DIST"+8(%ebp)\n\t"      /* This */
+                   "xorq %rax,%rax\n\t"
+                   "movl "__ASM_EXTRA_DIST"+8(%ebp),%eax\n\t"
+                   "movl 0(%eax),%eax\n\t"
+                   "movl 0(%eax),%eax\n\t"      /* This->lpVtbl->OnVoiceProcessingPassStart */
+                   "movq %rax,%rcx\n\t"
+                   "movq -16(%rax),%rax\n\t"
+                   "leaq 7(%rax,%rcx),%rax\n\t" /* thunk + *(thunk-16) + 7 */
+                   "subl $("__ASM_EXTRA_DIST"-4),%esp\n\t"
+                   "callq *%rax\n\t"
+                   "leal -8(%ebp),%esp\n\t"
+                   "popl %edi\n\t"
+                   __ASM_CFI(".cfi_same_value %edi\n\t")
+                   "popl %esi\n\t"
+                   __ASM_CFI(".cfi_same_value %esi\n\t")
+                   "popl %ebp\n\t"
+                   __ASM_CFI(".cfi_def_cfa %esp,4\n\t")
+                   __ASM_CFI(".cfi_same_value %ebp\n\t")
+                   "retq" )
+__ASM_GLOBAL_FUNC32( __ASM_THUNK_NAME(call_on_voice_processing_pass_start_impl),
+                     "pushl %ebp\n\t"
+                     __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
+                     __ASM_CFI(".cfi_rel_offset %ebp,0\n\t")
+                     "movl %esp,%ebp\n\t"
+                     __ASM_CFI(".cfi_def_cfa_register %ebp\n\t")
+                     "pushl %esi\n\t"
+                     __ASM_CFI(".cfi_rel_offset %esi,-4\n\t")
+                     "pushl %edi\n\t"
+                     __ASM_CFI(".cfi_rel_offset %edi,-8\n\t")
+                     "subl $8,%esp\n\t"
+                     "pushl 12(%ebp)\n\t"     /* BytesRequired */
+                     "pushl 8(%ebp)\n\t"      /* This */
+                     "movl 8(%ebp),%eax\n\t"
+                     "movl 0(%eax),%eax\n\t"
+                     "call *0(%eax)\n\t"      /* This->lpVtbl->OnVoiceProcessingPassStart */
+                     "leal -8(%ebp),%esp\n\t"
+                     "popl %edi\n\t"
+                     __ASM_CFI(".cfi_same_value %edi\n\t")
+                     "popl %esi\n\t"
+                     __ASM_CFI(".cfi_same_value %esi\n\t")
+                     "popl %ebp\n\t"
+                     __ASM_CFI(".cfi_def_cfa %esp,4\n\t")
+                     __ASM_CFI(".cfi_same_value %ebp\n\t")
+                     "ret" )
+void call_on_voice_processing_pass_start(IXAudio2VoiceCallback *This, UINT32 BytesRequired)
+{
+    if (wine_is_thunk32to64( This->lpVtbl->OnVoiceProcessingPassStart ))
+    {
+        call_on_voice_processing_pass_start_impl( This, BytesRequired );
+    }
+    else
+    {
+        void (CDECL *pcall_on_voice_processing_pass_start_impl)(IXAudio2VoiceCallback *This, UINT32 BytesRequired) = call_on_voice_processing_pass_start_impl;
+        pcall_on_voice_processing_pass_start_impl( This, BytesRequired );
+    }
+
+}
 #endif
 
 static HINSTANCE instance;
