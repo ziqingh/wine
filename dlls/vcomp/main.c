@@ -155,6 +155,89 @@ __ASM_GLOBAL_FUNC( _vcomp_fork_call_wrapper,
                    __ASM_CFI(".cfi_same_value %ebp\n\t")
                    "ret" )
 
+#elif defined(__i386_on_x86_64__)
+
+extern void CDECL _vcomp_fork_call_wrapper_impl(void *wrapper, int nargs, __ms_va_list args);
+__ASM_GLOBAL_FUNC( _vcomp_fork_call_wrapper_impl,
+                   "pushl %ebp\n\t"
+                   __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
+                   __ASM_CFI(".cfi_rel_offset %ebp,0\n\t")
+                   "movl %esp,%ebp\n\t"
+                   __ASM_CFI(".cfi_def_cfa_register %ebp\n\t")
+                   "pushl %esi\n\t"
+                   __ASM_CFI(".cfi_rel_offset %esi,-4\n\t")
+                   "pushl %edi\n\t"
+                   __ASM_CFI(".cfi_rel_offset %edi,-8\n\t")
+                   "movl "__ASM_EXTRA_DIST"+12(%ebp),%edx\n\t"
+                   "movl %esp,%edi\n\t"
+                   "shll $2,%edx\n\t"
+                   "jz 1f\n\t"
+                   "subl %edx,%edi\n\t"
+                   "subl $("__ASM_EXTRA_DIST"-4),%edi\n\t"
+                   "andl $~15,%edi\n\t"
+                   "addl $("__ASM_EXTRA_DIST"-4),%edi\n\t"
+                   "movl %edi,%esp\n\t"
+                   "movl "__ASM_EXTRA_DIST"+12(%ebp),%ecx\n\t"
+                   "movl "__ASM_EXTRA_DIST"+16(%ebp),%esi\n\t"
+                   "cld\n\t"
+                   "rep; movsl\n"
+                   "1:\tsubl $("__ASM_EXTRA_DIST"-4),%esp\n\t"
+                   "xorq %rax,%rax\n\t"
+                   "movl "__ASM_EXTRA_DIST"+8(%ebp),%eax\n\t"
+                   "callq *%rax\n\t"
+                   "leal -8(%ebp),%esp\n\t"
+                   "popl %edi\n\t"
+                   __ASM_CFI(".cfi_same_value %edi\n\t")
+                   "popl %esi\n\t"
+                   __ASM_CFI(".cfi_same_value %esi\n\t")
+                   "popl %ebp\n\t"
+                   __ASM_CFI(".cfi_def_cfa %esp,4\n\t")
+                   __ASM_CFI(".cfi_same_value %ebp\n\t")
+                   "retq" )
+__ASM_GLOBAL_FUNC32( __ASM_THUNK_NAME(_vcomp_fork_call_wrapper_impl),
+                     "pushl %ebp\n\t"
+                     __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
+                     __ASM_CFI(".cfi_rel_offset %ebp,0\n\t")
+                     "movl %esp,%ebp\n\t"
+                     __ASM_CFI(".cfi_def_cfa_register %ebp\n\t")
+                     "pushl %esi\n\t"
+                     __ASM_CFI(".cfi_rel_offset %esi,-4\n\t")
+                     "pushl %edi\n\t"
+                     __ASM_CFI(".cfi_rel_offset %edi,-8\n\t")
+                     "movl 12(%ebp),%edx\n\t"
+                     "movl %esp,%edi\n\t"
+                     "shll $2,%edx\n\t"
+                     "jz 1f\n\t"
+                     "subl %edx,%edi\n\t"
+                     "andl $~15,%edi\n\t"
+                     "movl %edi,%esp\n\t"
+                     "movl 12(%ebp),%ecx\n\t"
+                     "movl 16(%ebp),%esi\n\t"
+                     "cld\n\t"
+                     "rep; movsl\n"
+                     "1:\tcall *8(%ebp)\n\t"
+                     "leal -8(%ebp),%esp\n\t"
+                     "popl %edi\n\t"
+                     __ASM_CFI(".cfi_same_value %edi\n\t")
+                     "popl %esi\n\t"
+                     __ASM_CFI(".cfi_same_value %esi\n\t")
+                     "popl %ebp\n\t"
+                     __ASM_CFI(".cfi_def_cfa %esp,4\n\t")
+                     __ASM_CFI(".cfi_same_value %ebp\n\t")
+                     "ret" )
+static inline void _vcomp_fork_call_wrapper(void *wrapper, int nargs, __ms_va_list args)
+{
+    if (wine_is_thunk32to64( wrapper ))
+    {
+        _vcomp_fork_call_wrapper_impl( __ASM_THUNK_TARGET(wrapper), nargs, args );
+    }
+    else
+    {
+        void (CDECL *p_vcomp_fork_call_wrapper_impl)(void *wrapper, int nargs, __ms_va_list args) = _vcomp_fork_call_wrapper_impl;
+        p_vcomp_fork_call_wrapper_impl( wrapper, nargs, args );
+    }
+}
+
 #elif defined(__x86_64__)
 
 extern void CDECL _vcomp_fork_call_wrapper(void *wrapper, int nargs, __ms_va_list args);
