@@ -38,6 +38,8 @@
 #include "wine/list.h"
 #include "build.h"
 
+#define __ASM_EXTRA_DIST "16"
+
 struct import_func
 {
     const char *name;
@@ -1018,34 +1020,42 @@ static void output_delayed_import_thunks( const DLLSPEC *spec )
         output( "\tjmp *%%rax\n" );
         break;
     case CPU_x86_32on64:
-        output( "\tsubq $0xa0,%%rsp\n" );
-        output_cfi( ".cfi_adjust_cfa_offset 0xa0" );
-        output( "\tmovq %%rax,0x90(%%rsp)\n" );
-        output( "\tmovq %%rdx,0x88(%%rsp)\n" );
-        output( "\tmovq %%rcx,0x80(%%rsp)\n" );
-        output( "\tmovq %%r8,0x78(%%rsp)\n" );
-        output( "\tmovq %%r9,0x70(%%rsp)\n" );
-        output( "\tmovq %%r10,0x68(%%rsp)\n" );
-        output( "\tmovq %%r11,0x60(%%rsp)\n" );
+        output( "\tsubq $0xb8,%%rsp\n" );
+        output_cfi( ".cfi_adjust_cfa_offset 0xb8" );
+        output( "\tmovq %%rax,0xa8(%%rsp)\n" );
+        output( "\tmovq %%rdx,0xa0(%%rsp)\n" );
+        output( "\tmovq %%r8,0x98(%%rsp)\n" );
+        output( "\tmovq %%r9,0x90(%%rsp)\n" );
+        output( "\tmovq %%r10,0x88(%%rsp)\n" );
+        output( "\tmovq %%r11,0x80(%%rsp)\n" );
+        output( "\tmovq %%r12,0x78(%%rsp)\n" );
+        output( "\tmovq %%r13,0x70(%%rsp)\n" );
+        output( "\tmovq %%r14,0x68(%%rsp)\n" );
+        output( "\tmovq %%r15,0x60(%%rsp)\n" );
         output( "\tmovups %%xmm0,0x50(%%rsp)\n" );
         output( "\tmovups %%xmm1,0x40(%%rsp)\n" );
         output( "\tmovups %%xmm2,0x30(%%rsp)\n" );
         output( "\tmovups %%xmm3,0x20(%%rsp)\n" );
-        output( "\tmovq %%rbx,%%rcx\n" );
+        output( "\tpushl %%ecx\n" );
+        output( "\tsubq $("__ASM_EXTRA_DIST"-4),%%rsp\n\t" );
         output( "\tcall %s\n", asm_name("__wine_spec_delay_load") );
+        output( "\taddq $"__ASM_EXTRA_DIST",%%rsp\n\t" );
         output( "\tmovups 0x20(%%rsp),%%xmm3\n" );
         output( "\tmovups 0x30(%%rsp),%%xmm2\n" );
         output( "\tmovups 0x40(%%rsp),%%xmm1\n" );
         output( "\tmovups 0x50(%%rsp),%%xmm0\n" );
-        output( "\tmovq 0x60(%%rsp),%%r11\n" );
-        output( "\tmovq 0x68(%%rsp),%%r10\n" );
-        output( "\tmovq 0x70(%%rsp),%%r9\n" );
-        output( "\tmovq 0x78(%%rsp),%%r8\n" );
-        output( "\tmovq 0x80(%%rsp),%%rcx\n" );
-        output( "\tmovq 0x88(%%rsp),%%rdx\n" );
-        output( "\tmovq 0x90(%%rsp),%%rax\n" );
-        output( "\taddq $0xa0,%%rsp\n" );
-        output_cfi( ".cfi_adjust_cfa_offset -0xa0" );
+        output( "\tmovq 0x60(%%rsp),%%r15\n" );
+        output( "\tmovq 0x68(%%rsp),%%r14\n" );
+        output( "\tmovq 0x70(%%rsp),%%r13\n" );
+        output( "\tmovq 0x78(%%rsp),%%r12\n" );
+        output( "\tmovq 0x80(%%rsp),%%r11\n" );
+        output( "\tmovq 0x88(%%rsp),%%r10\n" );
+        output( "\tmovq 0x90(%%rsp),%%r9\n" );
+        output( "\tmovq 0x98(%%rsp),%%r8\n" );
+        output( "\tmovq 0xa0(%%rsp),%%rdx\n" );
+        output( "\tmovq 0xa8(%%rsp),%%rax\n" );
+        output( "\taddq $0xb8,%%rsp\n" );
+        output_cfi( ".cfi_adjust_cfa_offset -0xb8" );
         output( "\tretq\n" );
         break;
     case CPU_ARM:
@@ -1149,12 +1159,12 @@ static void output_delayed_import_thunks( const DLLSPEC *spec )
                 output( "\tjmp %s\n", asm_name("__wine_delay_load_asm") );
                 break;
             case CPU_x86_32on64:
-                output( "\tmovq $%d,%%rbx\n", (idx << 16) | j );
+                output( "\tmovq $%d,%%rcx\n", (idx << 16) | j );
                 output( "\tcall %s\n", asm_name("__wine_delay_load_asm") );
                 output( "\tcmpq $0, .L__wine_delay_IAT+%d(%%rip)\n", (table_begin + import->nb_imports + 1 + j) * get_ptr_size() );
                 output( "\tjne 1f\n" );
-                output( "\tmovq .L__wine_delay_IAT+%d(%%rip), %%rbx\n", (table_begin + j) * get_ptr_size() );
-                output( "\tmovq %%rbx, 8(%%rax)\n");
+                output( "\tmovq .L__wine_delay_IAT+%d(%%rip), %%rcx\n", (table_begin + j) * get_ptr_size() );
+                output( "\tmovq %%rcx, 8(%%rax)\n");
                 output( "\tjmpq *(%%rax)\n" );
                 output( "\t1:\n" );
                 output( "\tjmpq *.L__wine_delay_IAT+%d(%%rip)\n", (table_begin + import->nb_imports + 1 + j) * get_ptr_size() );
