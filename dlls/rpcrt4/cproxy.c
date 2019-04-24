@@ -53,10 +53,14 @@ static inline StdProxyImpl *impl_from_proxy_obj( void *iface )
     return CONTAINING_RECORD(iface, StdProxyImpl, PVtbl);
 }
 
-#ifdef __i386__
+#if defined(__i386__) || defined(__i386_on_x86_64__)
 
 extern void call_stubless_func(void);
+#ifdef __i386__
 __ASM_GLOBAL_FUNC(call_stubless_func,
+#else
+__ASM_GLOBAL_FUNC32(call_stubless_func,
+#endif
                   "movl 4(%esp),%ecx\n\t"         /* This pointer */
                   "movl (%ecx),%ecx\n\t"          /* This->lpVtbl */
                   "movl -8(%ecx),%ecx\n\t"        /* MIDL_STUBLESS_PROXY_INFO */
@@ -76,7 +80,11 @@ __ASM_GLOBAL_FUNC(call_stubless_func,
                   __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
                   "pushl (%ecx)\n\t"              /* info->pStubDesc */
                   __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
+#ifdef __i386__
                   "call " __ASM_NAME("ndr_client_call") "\n\t"
+#else
+                  "call " __ASM_THUNK_SYMBOL("ndr_client_call") "\n\t"
+#endif
                   "leal 12(%esp),%esp\n\t"
                   __ASM_CFI(".cfi_adjust_cfa_offset -12\n\t")
                   "popl %edx\n\t"                 /* arguments size */
