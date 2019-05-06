@@ -28,7 +28,7 @@
 #include "config.h"
 #include "wine/port.h"
 
-#ifdef __i386__
+#if defined(__i386__) || defined(__i386_on_x86_64__)
 
 #include <stdarg.h>
 
@@ -137,6 +137,64 @@ DWORD CDECL cxx_frame_handler( PEXCEPTION_RECORD rec, cxx_exception_frame* frame
                                const cxx_function_descr *descr,
                                EXCEPTION_REGISTRATION_RECORD* nested_frame, int nested_trylevel ) DECLSPEC_HIDDEN;
 
+#ifdef __i386_on_x86_64__
+extern void CDECL DECLSPEC_NORETURN continue_after_catch_impl( cxx_exception_frame *frame, void *addr );
+__ASM_GLOBAL_FUNC32( __ASM_THUNK_NAME(continue_after_catch),
+                     "movl 4(%esp), %edx\n\t"
+                     "movl 8(%esp), %eax\n\t"
+                     "movl -4(%edx), %esp\n\t"
+                     "leal 12(%edx), %ebp\n\t"
+                     "jmp *%eax" );
+static inline void DECLSPEC_NORETURN continue_after_catch( cxx_exception_frame *frame, void *addr )
+{
+    void (CDECL *pcontinue_after_catch_impl)( cxx_exception_frame *, void * ) = continue_after_catch_impl;
+    pcontinue_after_catch_impl( frame, addr );
+}
+
+extern void CDECL DECLSPEC_NORETURN call_finally_block_impl( void *code_block, void *base_ptr );
+__ASM_GLOBAL_FUNC32( __ASM_THUNK_NAME(call_finally_block_impl),
+                     "movl 8(%esp), %ebp\n\t"
+                     "jmp *4(%esp)" );
+static inline void DECLSPEC_NORETURN call_finally_block( void *code_block, void *base_ptr )
+{
+    void (CDECL *pcall_finally_block_impl)( void *, void * ) = call_finally_block_impl;
+    pcall_finally_block_impl( code_block, base_ptr );
+}
+
+extern int CDECL call_filter_impl( int (*func)(PEXCEPTION_POINTERS), void *arg, void *ebp );
+__ASM_GLOBAL_FUNC32( __ASM_THUNK_NAME(call_filter_impl),
+                     "pushl %ebp\n\t"
+                     "pushl 12(%esp)\n\t"
+                     "movl 20(%esp), %ebp\n\t"
+                     "call *12(%esp)\n\t"
+                     "popl %ebp\n\t"
+                     "popl %ebp\n\t"
+                     "ret" );
+static inline int call_filter( int (*func)(PEXCEPTION_POINTERS), void *arg, void *ebp )
+{
+    int (CDECL *pcall_filter_impl)( int (*)(PEXCEPTION_POINTERS), void *, void * ) = call_filter_impl;
+    return pcall_filter_impl( func, arg, ebp );
+}
+
+extern void CDECL *call_handler_impl( void * (*func)(void), void *ebp );
+__ASM_GLOBAL_FUNC32( __ASM_THUNK_NAME(call_handler_impl),
+                     "pushl %ebp\n\t"
+                     "pushl %ebx\n\t"
+                     "pushl %esi\n\t"
+                     "pushl %edi\n\t"
+                     "movl 24(%esp), %ebp\n\t"
+                     "call *20(%esp)\n\t"
+                     "popl %edi\n\t"
+                     "popl %esi\n\t"
+                     "popl %ebx\n\t"
+                     "popl %ebp\n\t"
+                     "ret" );
+static inline void *call_handler( void * (*func)(void), void *ebp )
+{
+    void *(CDECL *pcall_handler_impl)( void * (*)(void), void * ) = call_handler_impl;
+    pcall_handler_impl( func, ebp );
+}
+#else
 /* call a copy constructor */
 extern void call_copy_ctor( void *func, void *this, void *src, int has_vbase );
 
@@ -196,6 +254,7 @@ __ASM_GLOBAL_FUNC( call_handler,
                    "popl %ebx\n\t"
                    "popl %ebp\n\t"
                    "ret" );
+#endif /* __i386_on_x86_64__ */
 
 static inline void dump_type( const cxx_type_info *type )
 {
