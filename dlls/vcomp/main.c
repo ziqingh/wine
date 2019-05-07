@@ -233,7 +233,7 @@ static inline void _vcomp_fork_call_wrapper(void *wrapper, int nargs, __ms_va_li
     }
     else
     {
-        void (CDECL *p_vcomp_fork_call_wrapper_impl)(void *wrapper, int nargs, __ms_va_list args) = _vcomp_fork_call_wrapper_impl;
+        void (CDECL *p_vcomp_fork_call_wrapper_impl)(void *, int, __ms_va_list) = _vcomp_fork_call_wrapper_impl;
         p_vcomp_fork_call_wrapper_impl( wrapper, nargs, args );
     }
 }

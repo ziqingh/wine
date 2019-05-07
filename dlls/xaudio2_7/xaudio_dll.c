@@ -142,7 +142,7 @@ void call_on_voice_processing_pass_start(IXAudio2VoiceCallback *This, UINT32 Byt
     }
     else
     {
-        void (CDECL *pcall_on_voice_processing_pass_start_impl)(IXAudio2VoiceCallback *This, UINT32 BytesRequired) = call_on_voice_processing_pass_start_impl;
+        void (CDECL *pcall_on_voice_processing_pass_start_impl)(IXAudio2VoiceCallback *, UINT32) = call_on_voice_processing_pass_start_impl;
         pcall_on_voice_processing_pass_start_impl( This, BytesRequired );
     }
 

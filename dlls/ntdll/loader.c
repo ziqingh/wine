@@ -329,7 +329,7 @@ static inline BOOL call_dll_entry_point( DLLENTRYPROC proc, void *module, UINT r
     }
     else
     {
-        BOOL (CDECL *pcall_dll_entry_point_impl)( DLLENTRYPROC proc, void *module, UINT reason, void *reserved ) = call_dll_entry_point_impl;
+        BOOL (CDECL *pcall_dll_entry_point_impl)(DLLENTRYPROC, void *, UINT, void *) = call_dll_entry_point_impl;
         return pcall_dll_entry_point_impl( proc, module, reason, reserved );
     }
 }

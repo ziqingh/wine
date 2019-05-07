@@ -6442,7 +6442,7 @@ static inline LONGLONG call_method( void *func, int nb_args, const DWORD *args, 
     }
     else
     {
-        LONGLONG (CDECL *pcall_method_impl)( void *func, int nb_args, const DWORD *args, int *stack_offset ) = call_method_impl;
+        LONGLONG (CDECL *pcall_method_impl)(void *, int, const DWORD *, int *) = call_method_impl;
         return pcall_method_impl( func, nb_args, args, stack_offset );
     }
 }

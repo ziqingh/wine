@@ -1263,7 +1263,7 @@ static inline DWORD call_process_entry( PEB *peb, LPTHREAD_START_ROUTINE entry )
     }
     else
     {
-        DWORD (CDECL *pcall_process_entry_impl)( PEB *peb, LPTHREAD_START_ROUTINE entry ) = call_process_entry_impl;
+        DWORD (CDECL *pcall_process_entry_impl)(PEB *, LPTHREAD_START_ROUTINE) = call_process_entry_impl;
         return pcall_process_entry_impl( peb, entry );
     }
 }

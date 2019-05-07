@@ -3762,7 +3762,7 @@ static BOOL CALLBACK enum_mon_callback( HMONITOR monitor, HDC hdc, LPRECT rect, 
 {
     struct enum_mon_data *data = (struct enum_mon_data *)lp;
 #ifdef __i386_on_x86_64__
-    BOOL (CDECL *penum_mon_callback_wrapper)( HMONITOR monitor, LPRECT rect, struct enum_mon_data *data ) = enum_mon_callback_wrapper;
+    BOOL (CDECL *penum_mon_callback_wrapper)(HMONITOR, LPRECT, struct enum_mon_data *) = enum_mon_callback_wrapper;
 #endif
     RECT monrect = map_dpi_rect( *rect, get_monitor_dpi( monitor ), get_thread_dpi() );
 

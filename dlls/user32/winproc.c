@@ -292,8 +292,7 @@ static inline LRESULT WINPROC_wrapper( WNDPROC proc, HWND hwnd, UINT msg, WPARAM
     }
     else
     {
-        LRESULT (CDECL *pWINPROC_wrapper_impl)( WNDPROC proc, HWND hwnd, UINT msg,
-                                                WPARAM wParam, LPARAM lParam ) = WINPROC_wrapper_impl;
+        LRESULT (CDECL *pWINPROC_wrapper_impl)(WNDPROC, HWND, UINT, WPARAM, LPARAM) = WINPROC_wrapper_impl;
         return pWINPROC_wrapper_impl( proc, hwnd, msg, wParam, lParam );
     }
 }
