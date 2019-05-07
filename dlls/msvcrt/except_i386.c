@@ -712,6 +712,27 @@ DWORD CDECL cxx_frame_handler( PEXCEPTION_RECORD rec, cxx_exception_frame* frame
  */
 extern DWORD CDECL __CxxFrameHandler( PEXCEPTION_RECORD rec, EXCEPTION_REGISTRATION_RECORD* frame,
                                       PCONTEXT context, EXCEPTION_REGISTRATION_RECORD** dispatch );
+#ifdef __i386_on_x86_64__
+__ASM_GLOBAL_FUNC32( __ASM_THUNK_NAME(__CxxFrameHandler),
+                     "pushl $0\n\t"        /* nested_trylevel */
+                     __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
+                     "pushl $0\n\t"        /* nested_frame */
+                     __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
+                     "pushl %eax\n\t"      /* descr */
+                     __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
+                     "pushl 28(%esp)\n\t"  /* dispatch */
+                     __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
+                     "pushl 28(%esp)\n\t"  /* context */
+                     __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
+                     "pushl 28(%esp)\n\t"  /* frame */
+                     __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
+                     "pushl 28(%esp)\n\t"  /* rec */
+                     __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
+                     "call " __ASM_THUNK_SYMBOL("cxx_frame_handler") "\n\t"
+                     "add $28,%esp\n\t"
+                     __ASM_CFI(".cfi_adjust_cfa_offset -28\n\t")
+                     "ret" )
+#else
 __ASM_GLOBAL_FUNC( __CxxFrameHandler,
                    "pushl $0\n\t"        /* nested_trylevel */
                    __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
@@ -731,6 +752,7 @@ __ASM_GLOBAL_FUNC( __CxxFrameHandler,
                    "add $28,%esp\n\t"
                    __ASM_CFI(".cfi_adjust_cfa_offset -28\n\t")
                    "ret" )
+#endif
 
 
 /*********************************************************************
@@ -794,7 +816,12 @@ unsigned int CDECL __CxxQueryExceptionSize(void)
  */
 
 /* Provided for VC++ binary compatibility only */
+#ifdef __i386_on_x86_64__
+extern void CDECL _EH_prolog(void);
+__ASM_GLOBAL_FUNC32(__ASM_THUNK_NAME(_EH_prolog),
+#else
 __ASM_GLOBAL_FUNC(_EH_prolog,
+#endif
                   __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")  /* skip ret addr */
                   "pushl $-1\n\t"
                   __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
