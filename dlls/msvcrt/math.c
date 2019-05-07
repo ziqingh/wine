@@ -693,6 +693,7 @@ __ASM_GLOBAL_FUNC(MSVCRT__ftol,
         "ret")
 #else
 #define CREATE_FPU_FUNC1(name, call) \
+    extern void CDECL name(void); \
     __ASM_GLOBAL_FUNC32(__ASM_THUNK_NAME(name), \
             "pushl   %ebp\n\t" \
             __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t") \
@@ -727,13 +728,9 @@ __ASM_GLOBAL_FUNC(MSVCRT__ftol,
             __ASM_CFI(".cfi_def_cfa %esp,4\n\t") \
             __ASM_CFI(".cfi_same_value %ebp\n\t") \
             "ret") \
-    void CDECL name(void) \
-    { \
-        ERR("Should never be reached. Only the 32-bit version should be called"); \
-        abort(); \
-    }
 
 #define CREATE_FPU_FUNC2(name, call) \
+    extern void CDECL name(void); \
     __ASM_GLOBAL_FUNC32(__ASM_THUNK_NAME(name), \
             "pushl   %ebp\n\t" \
             __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t") \
@@ -770,12 +767,8 @@ __ASM_GLOBAL_FUNC(MSVCRT__ftol,
             __ASM_CFI(".cfi_def_cfa %esp,4\n\t") \
             __ASM_CFI(".cfi_same_value %ebp\n\t") \
             "ret") \
-    void CDECL name(void) \
-    { \
-        ERR("Should never be reached. Only the 32-bit version should be called"); \
-        abort(); \
-    }
 
+extern void CDECL MSVCRT__ftol(void);
 __ASM_GLOBAL_FUNC32(__ASM_THUNK_NAME(MSVCRT__ftol),
                     "pushl   %ebp\n\t"
                     __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
@@ -796,11 +789,6 @@ __ASM_GLOBAL_FUNC32(__ASM_THUNK_NAME(MSVCRT__ftol),
                     __ASM_CFI(".cfi_def_cfa %esp,4\n\t")
                     __ASM_CFI(".cfi_same_value %ebp\n\t")
                     "ret")
-void CDECL MSVCRT__ftol(void)
-{
-    ERR("Should never be reached. Only the 32-bit version should be called");
-    abort();
-}
 #endif /* __i386__ */
 
 CREATE_FPU_FUNC1(_CIacos, MSVCRT_acos)

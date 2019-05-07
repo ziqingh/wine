@@ -242,6 +242,7 @@ __ASM_GLOBAL_FUNC(_chkesp,
                   "ret")
 #  else
 
+extern void CDECL _chkesp(void);
 __ASM_GLOBAL_FUNC32(__ASM_THUNK_NAME(_chkesp),
                     "jnz 1f\n\t"
                     "ret\n"
@@ -262,11 +263,6 @@ __ASM_GLOBAL_FUNC32(__ASM_THUNK_NAME(_chkesp),
                     __ASM_CFI(".cfi_def_cfa %esp,4\n\t")
                     __ASM_CFI(".cfi_same_value %ebp\n\t")
                     "ret")
-void CDECL _chkesp(void)
-{
-    ERR("Should never be reached. Only the 32-bit version should be called");
-    abort();
-}
 
 #  endif
 

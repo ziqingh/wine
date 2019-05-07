@@ -3722,10 +3722,7 @@ INT __cdecl NTOSKRNL_wcsncmp( LPCWSTR str1, LPCWSTR str2, INT n )
 /**************************************************************************
  *           _chkstk   (NTOSKRNL.@)
  */
-void CDECL _chkstk(void)
-{
-    ERR("Should not be reached in x86_32on64 mode\n");
-}
+extern void CDECL __chkstk(void);
 __ASM_STDCALL_FUNC32( __ASM_THUNK_NAME(__chkstk), 0,
                       "negl %eax\n\t"
                       "addl %esp,%eax\n\t"

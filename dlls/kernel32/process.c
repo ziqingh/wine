@@ -1268,6 +1268,7 @@ static inline DWORD call_process_entry( PEB *peb, LPTHREAD_START_ROUTINE entry )
 }
 
 extern void WINAPI start_process( LPTHREAD_START_ROUTINE entry, PEB *peb ) DECLSPEC_HIDDEN;
+extern void WINAPI DECLSPEC_HIDDEN start_process_wrapper( LPTHREAD_START_ROUTINE entry, PEB *peb );
 __ASM_STDCALL_FUNC32( __ASM_THUNK_NAME(start_process_wrapper), 8,
                       "pushl %ebp\n\t"
                       __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
@@ -1277,11 +1278,6 @@ __ASM_STDCALL_FUNC32( __ASM_THUNK_NAME(start_process_wrapper), 8,
                       "pushl %ebx\n\t"  /* arg */
                       "pushl %eax\n\t"  /* entry */
                       "call " __ASM_THUNK_SYMBOL("start_process") )
-static void WINAPI DECLSPEC_HIDDEN start_process_wrapper( LPTHREAD_START_ROUTINE entry, PEB *peb )
-{
-    ERR("Should never be reached; only its 32-bit thunk counterpart should be called.\n");
-    abort();
-}
 
 #else
 static inline DWORD call_process_entry( PEB *peb, LPTHREAD_START_ROUTINE entry )

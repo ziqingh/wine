@@ -3751,11 +3751,6 @@ __ASM_GLOBAL_FUNC32( __ASM_THUNK_NAME(enum_mon_callback_wrapper),
                      __ASM_CFI(".cfi_def_cfa %esp,4\n\t")
                      __ASM_CFI(".cfi_same_value %ebp\n\t")
                      "ret" )
-BOOL CDECL enum_mon_callback_wrapper( HMONITOR monitor, LPRECT rect, struct enum_mon_data *data )
-{
-    ERR("Should never be reached; Only the 32-bit part should be called.\n");
-    abort();
-}
 #endif /* __i386__ */
 
 static BOOL CALLBACK enum_mon_callback( HMONITOR monitor, HDC hdc, LPRECT rect, LPARAM lp )
