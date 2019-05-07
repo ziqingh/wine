@@ -273,8 +273,7 @@ __ASM_GLOBAL_FUNC(call_dll_entry_point_impl,
                   "pushl "__ASM_EXTRA_DIST"16(%ebp)\n\t"
                   "pushl "__ASM_EXTRA_DIST"12(%ebp)\n\t"
                   "subl $("__ASM_EXTRA_DIST"-4),%esp\n\t"
-                  "xorq %rax,%rax\n\t"
-                  "movl "__ASM_EXTRA_DIST"8(%ebp),%eax\n\t"
+                  "movzlq "__ASM_EXTRA_DIST"8(%ebp),%rax\n\t"
                   "callq *%rax\n\t"
                   "movl %esi,%ebp\n\t"
                   __ASM_CFI(".cfi_def_cfa_register %ebp\n\t")

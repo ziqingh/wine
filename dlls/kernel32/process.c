@@ -1232,8 +1232,7 @@ __ASM_GLOBAL_FUNC( call_process_entry_impl,
                    "pushl 4(%ebp)\n\t"
                    "pushl "__ASM_EXTRA_DIST"+8(%ebp)\n\t"
                    "subl $("__ASM_EXTRA_DIST"-4),%esp\n\t"
-                   "xorq %rax,%rax\n\t"
-                   "movl "__ASM_EXTRA_DIST"+12(%ebp),%eax\n\t"
+                   "movzlq "__ASM_EXTRA_DIST"+12(%ebp),%rax\n\t"
                    "callq %rax\n\t"
                    "leave\n\t"
                    __ASM_CFI(".cfi_def_cfa %esp,4\n\t")

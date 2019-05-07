@@ -91,8 +91,7 @@ __ASM_GLOBAL_FUNC( call_on_voice_processing_pass_start_impl,
                    "subl $8,%esp\n\t"
                    "pushl "__ASM_EXTRA_DIST"+12(%ebp)\n\t"     /* BytesRequired */
                    "pushl "__ASM_EXTRA_DIST"+8(%ebp)\n\t"      /* This */
-                   "xorq %rax,%rax\n\t"
-                   "movl "__ASM_EXTRA_DIST"+8(%ebp),%eax\n\t"
+                   "movzlq "__ASM_EXTRA_DIST"+8(%ebp),%rax\n\t"
                    "movl 0(%eax),%eax\n\t"
                    "movl 0(%eax),%eax\n\t"      /* This->lpVtbl->OnVoiceProcessingPassStart */
                    "movq %rax,%rcx\n\t"
