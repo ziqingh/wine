@@ -6360,7 +6360,6 @@ __ASM_GLOBAL_FUNC( call_double_method,
 #elif defined(__i386_on_x86_64__)
 
 extern LONGLONG CDECL call_method_impl( void *func, int nb_args, const DWORD *args, int *stack_offset );
-extern double CDECL call_double_method( void *func, int nb_args, const DWORD *args, int *stack_offset );
 __ASM_GLOBAL_FUNC( call_method_impl,
                    "pushl %ebp\n\t"
                    __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
@@ -6435,8 +6434,6 @@ __ASM_GLOBAL_FUNC32( __ASM_THUNK_NAME(call_method_impl),
                      __ASM_CFI(".cfi_def_cfa %esp,4\n\t")
                      __ASM_CFI(".cfi_same_value %ebp\n\t")
                      "ret" )
-__ASM_GLOBAL_FUNC( call_double_method,
-                   "jmp " __ASM_NAME("call_method") )
 static inline LONGLONG call_method( void *func, int nb_args, const DWORD *args, int *stack_offset )
 {
     if (wine_is_thunk32to64(func))
@@ -6448,6 +6445,10 @@ static inline LONGLONG call_method( void *func, int nb_args, const DWORD *args, 
         LONGLONG (CDECL *pcall_method_impl)( void *func, int nb_args, const DWORD *args, int *stack_offset ) = call_method_impl;
         return pcall_method_impl( func, nb_args, args, stack_offset );
     }
+}
+static inline double call_double_method( void *func, int nb_args, const DWORD *args, int *stack_offset )
+{
+    return (double)call_method( func, nb_args, args, stack_offset );
 }
 
 #elif defined(__x86_64__)
