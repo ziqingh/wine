@@ -1095,6 +1095,31 @@ int CDECL _except_handler4_common( ULONG *cookie, void (*check_cookie)(void),
 #define MSVCRT_JMP_MAGIC 0x56433230 /* ID value for new jump structure */
 typedef void (__stdcall *MSVCRT_unwind_function)(const struct MSVCRT___JUMP_BUFFER *);
 
+#ifdef __i386_on_x86_64__
+#define DEFINE_SETJMP_ENTRYPOINT(name) \
+    __ASM_GLOBAL_FUNC32( __ASM_THUNK_NAME(name), \
+                         "movl 4(%esp),%ecx\n\t"   /* jmp_buf */      \
+                         "movl %ebp,0(%ecx)\n\t"   /* jmp_buf.Ebp */  \
+                         "movl %ebx,4(%ecx)\n\t"   /* jmp_buf.Ebx */  \
+                         "movl %edi,8(%ecx)\n\t"   /* jmp_buf.Edi */  \
+                         "movl %esi,12(%ecx)\n\t"  /* jmp_buf.Esi */  \
+                         "movl %esp,16(%ecx)\n\t"  /* jmp_buf.Esp */  \
+                         "movl 0(%esp),%eax\n\t"                      \
+                         "movl %eax,20(%ecx)\n\t"  /* jmp_buf.Eip */  \
+                         "jmp " __ASM_THUNK_SYMBOL("__regs_" # name ) )
+
+extern void CDECL DECLSPEC_NORETURN longjmp_set_regs( struct MSVCRT___JUMP_BUFFER *jmp, int retval );
+__ASM_GLOBAL_FUNC32( __ASM_THUNK_NAME(longjmp_set_regs),
+                     "movl 4(%esp),%ecx\n\t"   /* jmp_buf */
+                     "movl 8(%esp),%eax\n\t"   /* retval */
+                     "movl 0(%ecx),%ebp\n\t"   /* jmp_buf.Ebp */
+                     "movl 4(%ecx),%ebx\n\t"   /* jmp_buf.Ebx */
+                     "movl 8(%ecx),%edi\n\t"   /* jmp_buf.Edi */
+                     "movl 12(%ecx),%esi\n\t"  /* jmp_buf.Esi */
+                     "movl 16(%ecx),%esp\n\t"  /* jmp_buf.Esp */
+                     "addl $4,%esp\n\t"        /* get rid of return address */
+                     "jmp *20(%ecx)\n\t"       /* jmp_buf.Eip */ )
+#else
 /* define an entrypoint for setjmp/setjmp3 that stores the registers in the jmp buf */
 /* and then jumps to the C backend function */
 #define DEFINE_SETJMP_ENTRYPOINT(name) \
@@ -1121,6 +1146,7 @@ __ASM_GLOBAL_FUNC( longjmp_set_regs,
                    "movl 16(%ecx),%esp\n\t"  /* jmp_buf.Esp */
                    "addl $4,%esp\n\t"        /* get rid of return address */
                    "jmp *20(%ecx)\n\t"       /* jmp_buf.Eip */ )
+#endif
 
 /*
  * The signatures of the setjmp/longjmp functions do not match that
@@ -1183,6 +1209,9 @@ int WINAPIV DECLSPEC_HIDDEN __regs_MSVCRT__setjmp3(struct MSVCRT___JUMP_BUFFER *
 void CDECL MSVCRT_longjmp(struct MSVCRT___JUMP_BUFFER *jmp, int retval)
 {
     unsigned long cur_frame = 0;
+#ifdef __i386_on_x86_64__
+    void (CDECL *plongjmp_set_regs)(struct MSVCRT___JUMP_BUFFER *, int);
+#endif
 
     TRACE("buf=%p ebx=%08lx esi=%08lx edi=%08lx ebp=%08lx esp=%08lx eip=%08lx frame=%08lx retval=%08x\n",
           jmp, jmp->Ebx, jmp->Esi, jmp->Edi, jmp->Ebp, jmp->Esp, jmp->Eip, jmp->Registration, retval );
@@ -1212,7 +1241,12 @@ void CDECL MSVCRT_longjmp(struct MSVCRT___JUMP_BUFFER *jmp, int retval)
     if (!retval)
         retval = 1;
 
+#ifdef __i386_on_x86_64__
+    plongjmp_set_regs = longjmp_set_regs;
+    plongjmp_set_regs( jmp, retval );
+#else
     longjmp_set_regs( jmp, retval );
+#endif
 }
 
 /*********************************************************************
