@@ -6768,7 +6768,7 @@ DispCallFunc(
     void* pvInstance, ULONG_PTR oVft, CALLCONV cc, VARTYPE vtReturn, UINT cActuals,
     VARTYPE* prgvt, VARIANTARG** prgpvarg, VARIANT* pvargResult)
 {
-#ifdef __i386__
+#if defined(__i386__) || defined(__i386_on_x86_64__)
     int argspos = 0, stack_offset;
     void *func;
     UINT i;
