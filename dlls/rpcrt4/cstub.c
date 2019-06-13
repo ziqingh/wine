@@ -135,7 +135,7 @@ static ULONG WINAPI delegating_Release(IUnknown *pUnk)
    with This->stub_buffer.pvServerObject and then jump to the
    relevant offset in This->stub_buffer.pvServerObject's vtbl.
 */
-#ifdef __i386__
+#if defined(__i386__) || defined(__i386_on_x86_64__)
 
 #include "pshpack1.h"
 typedef struct {
