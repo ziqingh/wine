@@ -39,6 +39,30 @@ __ASM_GLOBAL_FUNC( __wine_rtl_unwind,
                    "call " __ASM_STDCALL("RtlUnwind",16) "\n\t"
                    "call *16(%ebp)" )
 
+#elif defined(__GNUC__)  && defined(__i386_on_x86_64__)
+
+extern void CDECL __wine_rtl_unwind_impl( EXCEPTION_REGISTRATION_RECORD* frame, EXCEPTION_RECORD *record,
+                                          void (*target)(void) );
+__ASM_GLOBAL_FUNC32( __ASM_THUNK_NAME(__wine_rtl_unwind_impl),
+                     "pushl %ebp\n\t"
+                     __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
+                     __ASM_CFI(".cfi_rel_offset %ebp,0\n\t")
+                     "movl %esp,%ebp\n\t"
+                     __ASM_CFI(".cfi_def_cfa_register %ebp\n\t")
+                     "subl $8,%esp\n\t"
+                     "pushl $0\n\t"       /* retval */
+                     "pushl 12(%ebp)\n\t" /* record */
+                     "pushl 16(%ebp)\n\t" /* target */
+                     "pushl 8(%ebp)\n\t"  /* frame */
+                     "call " __ASM_THUNK_SYMBOL(__ASM_STDCALL("RtlUnwind", 16)) "\n\t"
+                     "call *16(%ebp)" )
+void __cdecl __wine_rtl_unwind( EXCEPTION_REGISTRATION_RECORD* frame, EXCEPTION_RECORD *record,
+                                void (*target)(void) )
+{
+    void (CDECL *p__wine_rtl_unwind_impl)( EXCEPTION_REGISTRATION_RECORD*, EXCEPTION_RECORD *,void (*)(void) ) = __wine_rtl_unwind_impl;
+    p__wine_rtl_unwind_impl( frame, record, target );
+}
+
 #elif defined(__GNUC__) && defined(__x86_64__)
 
 __ASM_GLOBAL_FUNC( __wine_rtl_unwind,
