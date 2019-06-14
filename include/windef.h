@@ -464,51 +464,6 @@ typedef enum DPI_AWARENESS
 #define DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 ((DPI_AWARENESS_CONTEXT)-4)
 #define DPI_AWARENESS_CONTEXT_UNAWARE_GDISCALED    ((DPI_AWARENESS_CONTEXT)-5)
 
-#ifdef __i386_on_x86_64__
-
-#define __ASM_EXTRA_DIST "16"
-
-#define __ASM_STR__(name)    #name
-#define __ASM_STR(name)      __ASM_STR__(name)
-
-#define __ASM_THUNK_PREFIX                            wine
-#define __ASM_THUNK_MAKE_NAME__(thunk_prefix,name)    thunk_prefix##_thunk_##name
-#define __ASM_THUNK_MAKE_NAME(thunk_prefix,name)      __ASM_THUNK_MAKE_NAME__(thunk_prefix, name)
-#define __ASM_THUNK_NAME(name)                        __ASM_THUNK_MAKE_NAME(__ASM_THUNK_PREFIX, name)
-#define __ASM_THUNK_SYMBOL(name_str)                  __ASM_NAME(__ASM_STR(__ASM_THUNK_PREFIX) "_thunk_" name_str)
-#define __ASM_THUNK_MAGIC                             0x77496e4554683332
-#define __ASM_THUNK_TARGET(thunk_addr)                ((void *)(*((ULONGLONG *)thunk_addr - 2) + thunk_addr +7))
-
-#define __ASM_THUNK_DEFINE(name,suffix,code)                                                 \
-asm(".text\n\t"                                                                              \
-    ".balign 32\n\t"                                                                         \
-    ".quad " __ASM_NAME(#name suffix) " - (" __ASM_THUNK_SYMBOL(#name suffix) " + 7)\n\t"    \
-    ".quad " __ASM_STR(__ASM_THUNK_MAGIC) "\n\t"                                             \
-    ".globl " __ASM_THUNK_SYMBOL(#name suffix) "\n\t"                                        \
-    ".type  " __ASM_THUNK_SYMBOL(#name suffix) ",@function\n"                                \
-    __ASM_THUNK_SYMBOL(#name suffix) ":\n\t"                                                 \
-    ".cfi_startproc\n\t"                                                                     \
-    ".code32\n\t"                                                                            \
-    ".byte 0x8b, 0xff\n\t" /* movl %edi, %edi; hotpatch prolog */                            \
-    code "\n\t"                                                                              \
-    ".code64\n\t"                                                                            \
-    ".cfi_endproc\n\t"                                                                       \
-    ".previous");
-#define __ASM_THUNK_STDCALL(name,args,code)    __ASM_THUNK_DEFINE(name,__ASM_STDCALL(args),code)
-#define __ASM_THUNK_GLOBAL(name,code)          __ASM_THUNK_DEFINE(name,"",code)
-#define __ASM_STDCALL_FUNC32(name,args,code)   __ASM_STDCALL_FUNC(name,args,".code32\n\t" code "\n\t.code64\n\t")
-#define __ASM_GLOBAL_FUNC32(name,code)         __ASM_GLOBAL_FUNC(name,".code32\n\t" code "\n\t.code64\n\t")
-
-static inline BOOL wine_is_thunk32to64(void *func)
-{
-    /* Function address must be an odd multiple of 16 bytes; function must begin with
-       hotpatchable prolog; function must be preceded by magic number. */
-    ULONGLONG *thunk_magic = (ULONGLONG *)func - 1;
-    return (((uintptr_t)func & 0x1f) == 0x10 && *(WORD*)func == 0xff8b && *thunk_magic == __ASM_THUNK_MAGIC);
-}
-
-#endif /* __i386_on_x86_64__ */
-
 #ifdef __cplusplus
 }
 #endif
