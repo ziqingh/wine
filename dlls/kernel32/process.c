@@ -1221,23 +1221,10 @@ __ASM_GLOBAL_FUNC( start_process_wrapper,
 
 #elif defined(__i386_on_x86_64__)
 extern DWORD CDECL call_process_entry_impl( PEB *peb, LPTHREAD_START_ROUTINE entry );
-__ASM_GLOBAL_FUNC( call_process_entry_impl,
-                   "pushl %ebp\n\t"
-                   __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
-                   __ASM_CFI(".cfi_rel_offset %ebp,0\n\t")
-                   "movl %esp,%ebp\n\t"
-                   __ASM_CFI(".cfi_def_cfa_register %ebp\n\t")
-                   "pushl 4(%ebp)\n\t"  /* deliberately mis-align the stack by 8, Doom 3 needs this */
-                   "pushl 4(%ebp)\n\t"  /* Driller expects readable address at this offset */
-                   "pushl 4(%ebp)\n\t"
-                   "pushl "__ASM_EXTRA_DIST"+8(%ebp)\n\t"
-                   "subl $("__ASM_EXTRA_DIST"-4),%esp\n\t"
-                   "movzlq "__ASM_EXTRA_DIST"+12(%ebp),%rax\n\t"
-                   "callq %rax\n\t"
-                   "leave\n\t"
-                   __ASM_CFI(".cfi_def_cfa %esp,4\n\t")
-                   __ASM_CFI(".cfi_same_value %ebp\n\t")
-                   "retq" )
+DWORD CDECL call_process_entry_impl( PEB *peb, LPTHREAD_START_ROUTINE entry )
+{
+    return entry(peb);
+}
 __ASM_GLOBAL_FUNC32( __ASM_THUNK_NAME(call_process_entry_impl),
                      "pushl %ebp\n\t"
                      __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")

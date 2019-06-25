@@ -218,39 +218,10 @@ __ASM_GLOBAL_FUNC( WINPROC_wrapper,
  * call them. */
 extern LRESULT CDECL WINPROC_wrapper_impl( WNDPROC proc, HWND hwnd, UINT msg,
                                            WPARAM wParam, LPARAM lParam );
-__ASM_GLOBAL_FUNC( WINPROC_wrapper_impl,
-                   "pushl %ebp\n\t"
-                   __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
-                   __ASM_CFI(".cfi_rel_offset %ebp,0\n\t")
-                   "movl %esp,%ebp\n\t"
-                   __ASM_CFI(".cfi_def_cfa_register %ebp\n\t")
-                   "pushl %edi\n\t"
-                   __ASM_CFI(".cfi_rel_offset %edi,-4\n\t")
-                   "pushl %esi\n\t"
-                   __ASM_CFI(".cfi_rel_offset %esi,-8\n\t")
-                   "pushl %ebx\n\t"
-                   __ASM_CFI(".cfi_rel_offset %ebx,-12\n\t")
-                   /* TreePad X Enterprise assumes that edi is < 0x80000000 in WM_TIMER messages */
-                   "xorl %edi,%edi\n\t"
-                   "subl $12,%esp\n\t"
-                   "pushl "__ASM_EXTRA_DIST"+24(%ebp)\n\t"
-                   "pushl "__ASM_EXTRA_DIST"+20(%ebp)\n\t"
-                   "pushl "__ASM_EXTRA_DIST"+16(%ebp)\n\t"
-                   "pushl "__ASM_EXTRA_DIST"+12(%ebp)\n\t"
-                   "subl $("__ASM_EXTRA_DIST"-4),%esp\n\t"
-                   "movzlq "__ASM_EXTRA_DIST"+8(%ebp),%rax\n\t"
-                   "call *%rax\n\t"
-                   "leal -12(%ebp),%esp\n\t"
-                   "popl %ebx\n\t"
-                   __ASM_CFI(".cfi_same_value %ebx\n\t")
-                   "popl %esi\n\t"
-                   __ASM_CFI(".cfi_same_value %esi\n\t")
-                   "popl %edi\n\t"
-                   __ASM_CFI(".cfi_same_value %edi\n\t")
-                   "leave\n\t"
-                   __ASM_CFI(".cfi_def_cfa %esp,4\n\t")
-                   __ASM_CFI(".cfi_same_value %ebp\n\t")
-                   "retq" )
+LRESULT CDECL WINPROC_wrapper_impl( WNDPROC proc, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam )
+{
+    return proc( hwnd, msg, wParam, lParam );
+}
 __ASM_GLOBAL_FUNC32( __ASM_THUNK_NAME(WINPROC_wrapper_impl),
                      "pushl %ebp\n\t"
                      __ASM_CFI(".cfi_adjust_cfa_offset 4\n\t")
