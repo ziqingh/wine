@@ -712,7 +712,7 @@ static void output_import_thunk( const char *name, const char *table, int pos, i
     output_function_size( name );
 }
 
-static output_32bit_thunk( const char *name )
+static void output_32bit_thunk( const char *name )
 {
     if (target_cpu == CPU_x86_32on64)
     {

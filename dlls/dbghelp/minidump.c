@@ -635,7 +635,7 @@ __ASM_GLOBAL_FUNC( have_x86cpuid,
                    "xorq $0x0000000000200000,(%rsp)\n\t"
                    "popfq\n\t"
                    "pushfq\n\t"
-                   "popq %eax\n\t"
+                   "popq %rax\n\t"
                    "popfq\n\t"
                    "xorq %rcx,%rax\n\t"
                    "andq $0x0000000000200000,%rax\n\t"
