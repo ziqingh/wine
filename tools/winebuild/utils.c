@@ -900,7 +900,7 @@ const char *get_link_name( const ORDDEF *odp )
     static char *buffer;
     char *ret;
 
-    if (target_cpu != CPU_x86) return odp->link_name;
+    if (target_cpu != CPU_x86 && target_cpu != CPU_x86_32on64) return odp->link_name;
 
     switch (odp->type)
     {

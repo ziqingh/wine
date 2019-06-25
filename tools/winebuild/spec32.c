@@ -1044,7 +1044,7 @@ void output_def_file( DLLSPEC *spec, int include_stubs )
             break;
         }
         case TYPE_STUB:
-            if (!kill_at && target_cpu == CPU_x86) output( "@%d", get_args_size( odp ));
+            if (!kill_at && (target_cpu == CPU_x86 || target_cpu == CPU_x86_32on64)) output( "@%d", get_args_size( odp ));
             is_private = 1;
             break;
         default:
